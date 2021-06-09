@@ -14,8 +14,6 @@ public class Main extends Application {
         primaryStage.setScene(new Scene(view.getRoot()));
         primaryStage.setTitle("CoV2Structure Explorer");
         primaryStage.show();
-
-        //TEST
     }
 
 
