@@ -40,7 +40,7 @@ public class WindowPresenter {
         });
 
         // save pdb to file
-        controller.getSaveButton().setOnAction(e -> savePDB(stage, controller, model));
+//        controller.getSaveButton().setOnAction(e -> savePDB(stage, controller, model));
         controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
 
         // Menu items

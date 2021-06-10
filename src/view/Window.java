@@ -11,7 +11,7 @@ public class Window {
     private final Parent root;
 
     public Window() throws IOException {
-        try (var ins = Objects.requireNonNull(getClass().getResource("Window.fxml")).openStream()) {
+        try (var ins = Objects.requireNonNull(getClass().getResource("scratch-Window.fxml")).openStream()) {
             var fxmlLoader = new FXMLLoader();
             root = fxmlLoader.load(ins);
             controller = fxmlLoader.getController();

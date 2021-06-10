@@ -1,8 +1,9 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.SortedMap;
 
-public class Residue {
+public class Residue extends ArrayList<Atom> {
 
     private SortedMap<Integer, Atom> atoms;
     private int id;

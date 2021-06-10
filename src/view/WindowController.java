@@ -30,8 +30,7 @@ public class WindowController {
     private Button parseButton;
 
     @FXML
-    private Button saveButton;
-
+    private Button searchButton;
 
     public MenuItem getOpenMenu() {
         return openMenu;
@@ -89,13 +88,6 @@ public class WindowController {
         this.parseButton = parseButton;
     }
 
-    public Button getSaveButton() {
-        return saveButton;
-    }
-
-    public void setSaveButton(Button saveButton) {
-        this.saveButton = saveButton;
-    }
 
     public ListView<String> getPdbText() {
         return pdbText;
