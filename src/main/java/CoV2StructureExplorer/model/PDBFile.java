@@ -1,7 +1,11 @@
 package CoV2StructureExplorer.model;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import javax.json.Json;
 import javax.json.JsonString;
+import javax.json.JsonValue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -10,6 +14,11 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class PDBFile {
     private final String id;
@@ -30,10 +39,37 @@ public class PDBFile {
         this.content = getPDBString(path);
     }
 
-    public static void showPDBEntries() throws MalformedURLException {
-        var url = new URL("https://data.rcsb.org/rest/v1/holdings/current/entryids");
-        try (var reader = Json.createReader(getFromURL(url))) {
-            reader.readArray().stream().map(v -> ((JsonString) v).getString()).forEach(System.out::println);
+    // use to populate pdbCodeList based on content of entryField,
+    public ObservableList<String> getPDBEntries(String query) {
+
+        if (query.isEmpty()) {
+            return FXCollections.observableArrayList("6ZMO", "6ZOJ", "6ZPE", "6ZP5", "6ZP4", "6ZP7", "6ZOX", "6ZOW", "6ZOZ", "6ZOY", "6ZOK", "6ZON", "6ZP1", "6ZP0", "6ZP2",
+                    "5R84", "5R83", "5R7Y", "5R80", "5R82", "5R81", "5R8T", "5R7Z", "5REA", "5REC");
+        }
+        // FIXME: maybe make this a class variable?
+
+        try {
+            var url = new URL("https://data.rcsb.org/rest/v1/holdings/current/entry_ids");
+//            reader.readArray().stream().map(v -> ((JsonString) v).getString()).forEach(System.out::println);
+            var reader = Json.createReader(getFromURL(url));
+
+            // FIXME: This is ugly
+            var hits = new ArrayList<>(reader.readArray().stream()
+                    .map(JsonValue::toString)
+                    .filter(s -> s.startsWith("\"" + query.toUpperCase()))
+                    // Strings look like this: "\"BecauseJson\""
+                    .map(s -> s.replace("\"", ""))
+                    .toList());
+            hits.sort(Comparator.naturalOrder());
+            if (hits.isEmpty()) {
+                hits = new ArrayList<String>() {{
+                    add("Nothing Found");
+                }};
+            }
+            return FXCollections.observableArrayList(hits);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return FXCollections.observableArrayList("Error", e.toString());
         }
     }
 

@@ -3,7 +3,12 @@ package CoV2StructureExplorer.view;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+import javax.json.JsonValue;
+
 public class WindowController {
+
+    @FXML
+    private ListView<String> pdbCodeList;
 
     @FXML
     private MenuItem openMenu;
@@ -31,6 +36,22 @@ public class WindowController {
 
     @FXML
     private Button searchButton;
+
+    public ListView<String> getPdbCodeList() {
+        return pdbCodeList;
+    }
+
+    public void setPdbCodeList(ListView<String> pdbCodeList) {
+        this.pdbCodeList = pdbCodeList;
+    }
+
+    public Button getSearchButton() {
+        return searchButton;
+    }
+
+    public void setSearchButton(Button searchButton) {
+        this.searchButton = searchButton;
+    }
 
     public MenuItem getOpenMenu() {
         return openMenu;
@@ -87,7 +108,6 @@ public class WindowController {
     public void setParseButton(Button parseButton) {
         this.parseButton = parseButton;
     }
-
 
     public ListView<String> getPdbText() {
         return pdbText;

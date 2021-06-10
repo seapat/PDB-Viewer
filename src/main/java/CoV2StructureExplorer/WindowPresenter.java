@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 import CoV2StructureExplorer.view.WindowController;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.util.Scanner;
 
@@ -21,31 +22,32 @@ public class WindowPresenter {
 
         var protein = model.getProtein();
 
-        // only allow valid pdb codes (len = 4)
+        // only allow valid pdb codes
         var pdbCodeSize = new SimpleBooleanProperty(controller.getEntryField(), "pdbCodeSize", false);
         controller.getEntryField().textProperty().addListener( e -> {
-            pdbCodeSize.set(controller.getEntryField().getText().length() == 4);
+            pdbCodeSize.set(controller.getEntryField().getText().length() <= 4);
             controller.getParseButton().setDisable(!pdbCodeSize.get());
         });
 
-        // parse pdb code
-        // FIXME: load new CoV2StructureExplore.CoV2StructureExplorer.model on parse, currently id's not changing
-        //  (check assignment 4, you did something similar there)
+        // Button Listeners
         controller.getParseButton().setOnAction(e -> {
-            var pdbCode = controller.getEntryField().getText();
-            clearAll(controller, model);
+            // FIXME: load new CoV2StructureExplore.CoV2StructureExplorer.model on parse, currently id's not changing
+            //  (check assignment 4, you did something similar there)
 
-            // FIXME: How to Handle path? alternative: separate button / put parse into menu (alert window)
-//            CoV2StructureExplore.CoV2StructureExplorer.model = new PDBFile(pdbCode);
+            var pdbCode = controller.getPdbCodeList().getSelectionModel().getSelectedItem();
+            clearAll(controller, model);
             model.setContent(pdbCode);
             writePDB(controller, model);
+            controller.getPdbText().scrollTo(0);
         });
 
-        // save pdb to file
-//        controller.getSaveButton().setOnAction(e -> savePDB(stage, controller, model));
-        controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
+        // get default value for List of pdb codes
+        controller.getPdbCodeList().setItems(model.getPDBEntries(controller.getEntryField().getText()));
+        controller.getSearchButton().setOnAction(e -> controller.getPdbCodeList().setItems(
+                model.getPDBEntries(controller.getEntryField().getText()))
+        );
 
-        // Menu items
+        // Menu item Listeners
         controller.getAboutMenu().setOnAction(e -> {
             var alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("About this thing!");
@@ -59,7 +61,7 @@ public class WindowPresenter {
         });
         controller.getOpenMenu().setOnAction(e -> openPDB(stage,controller,model));
         controller.getClearMenu().setOnAction(e -> clearAll(controller,model));
-
+        controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
     }
 
     private static void savePDB(Stage stage, WindowController controller, PDBFile model){
