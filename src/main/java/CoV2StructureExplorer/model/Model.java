@@ -1,4 +1,13 @@
 package CoV2StructureExplorer.model;
 
-public record Model(Chain[] chains, int id) {
+import java.util.ArrayList;
+
+public class Model extends ArrayList<Chain> {
+
+    int idx = 0;
+
+    public Model(){
+        this.idx = ++idx;
+    }
+
 }

@@ -4,13 +4,17 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import javax.json.Json;
+import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,6 +28,21 @@ public class PDBFile {
     private final String id;
     private String content;
     private Structure structure;
+    private ArrayList pdbEntries;
+
+    // load url once instead of every function call
+    {
+        try {
+            var url = new URL("https://data.rcsb.org/rest/v1/holdings/current/entry_ids");
+            var reader = Json.createReader(getFromURL(url));
+            pdbEntries = new ArrayList(reader.readArray().stream()
+                    .map(JsonValue::toString)
+                    // Strings look like this: "\"BecauseJson\""
+                    .map(s -> s.replace("\"", "")).sorted().toList());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+    }
 
     // get via code from pdb
     public PDBFile(String id) {
@@ -43,24 +62,13 @@ public class PDBFile {
     public ObservableList<String> getPDBEntries(String query) {
 
         if (query.isEmpty()) {
+            // Corona-related pdb codes if selection is empty, If you just want to see any file, these are enough
+            // You don't want to scroll through all codes if you are "just testing", else you have a code at hand
             return FXCollections.observableArrayList("6ZMO", "6ZOJ", "6ZPE", "6ZP5", "6ZP4", "6ZP7", "6ZOX", "6ZOW", "6ZOZ", "6ZOY", "6ZOK", "6ZON", "6ZP1", "6ZP0", "6ZP2",
                     "5R84", "5R83", "5R7Y", "5R80", "5R82", "5R81", "5R8T", "5R7Z", "5REA", "5REC");
         }
-        // FIXME: maybe make this a class variable?
-
         try {
-            var url = new URL("https://data.rcsb.org/rest/v1/holdings/current/entry_ids");
-//            reader.readArray().stream().map(v -> ((JsonString) v).getString()).forEach(System.out::println);
-            var reader = Json.createReader(getFromURL(url));
-
-            // FIXME: This is ugly
-            var hits = new ArrayList<>(reader.readArray().stream()
-                    .map(JsonValue::toString)
-                    .filter(s -> s.startsWith("\"" + query.toUpperCase()))
-                    // Strings look like this: "\"BecauseJson\""
-                    .map(s -> s.replace("\"", ""))
-                    .toList());
-            hits.sort(Comparator.naturalOrder());
+            var hits = pdbEntries.stream().filter(s -> ((String)s).startsWith(query.toUpperCase())).toList();
             if (hits.isEmpty()) {
                 hits = new ArrayList<String>() {{
                     add("Nothing Found");
@@ -86,10 +94,7 @@ public class PDBFile {
     private static String getPDBString(String pdbID) {
         try {
             var code = pdbID.toLowerCase();
-
-            // FIXME: How to download a real pdb file???
             var url = new URL("https://files.rcsb.org/download/" + code + ".pdb"); //"https://data.rcsb.org/rest/v1/core/polymer_entity/"+ code + "/1"
-
             return new String(getFromURL(url).readAllBytes());
         } catch (IOException e) {
             e.printStackTrace();
@@ -106,11 +111,17 @@ public class PDBFile {
             connection.connect();
             return connection.getInputStream();
         }
-        // TODO: handle Exception somehow in Presenter and show AlertWindow, check for null inputStream?
         catch (IOException e) {
             e.printStackTrace();
-            System.err.println("\n Couldn't retrieve the PDB code...");
-            return InputStream.nullInputStream();
+            var errorString = """
+                    Couldn't retrieve the PDB code.
+                    There is probably no regular .pdb file available.
+                    Or the code does not exist at all.
+                   
+                    Error Message:
+                    """ + e;
+            System.err.println("\n" + errorString);
+            return new ByteArrayInputStream(errorString.getBytes(StandardCharsets.UTF_8));
         }
     }
 

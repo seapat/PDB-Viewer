@@ -20,66 +20,125 @@ public class PDBParser {
     This Class (and all corresponding ones) try to mimic this architecture.
     */
 
-    private Structure structure;
-
-    public Structure getStructure() {
-        return structure;
-    }
+    private final Structure structure;
+    private BufferedReader reader;
+    private String currLine;
 
     // TODO: implement me
     PDBParser(String pdbFile) {
 
-//        Model[] models = new Model[]{};
-        structure = new Structure(new Model[]{}, 0);
+        structure = new Structure();
 
-    try{
-        BufferedReader reader = new BufferedReader(new StringReader(pdbFile));
+        try {
+            reader = new BufferedReader(new StringReader(pdbFile));
 
-        for ( String line = null; null != (line = reader.readLine()); /*until no more line left*/) {
-//           System.out.println(line);
+//            nextLine = reader.readLine();
+            progressLine();
+
+            while ( currLine != null && currLine.trim().length() > 0 ) {
+                if (currLine.startsWith("ATOM")) {
+                    structure.add(
+                            parseModel()
+                    );
+                }
+//                nextLine = reader.readLine();
+                progressLine();
+            }
+
+            reader.close();
+        } catch (Exception e) {
+            System.err.println("Error: Target File Cannot Be Read");
         }
 
-        reader.close();
-    }
-    catch(Exception e){
-        System.err.println("Error: Target File Cannot Be Read");
     }
 
+    private Model parseModel() {
+        var model = new Model();
 
-//        reader.readLine();
-    }
+        while ( currLine != null && currLine.trim().length() > 0 ) {
 
-    private static Model parseModel(BufferedReader reader, String firstLine){
-        var model = new Model(new Chain[]{}, 0);
+            if (currLine.startsWith("ENDMDL")) {
+                return model;
+            }
+            if (currLine.startsWith("ATOM")) {
+                model.add(
+                        parseChain()
+                );
+            }
 
+//                nextLine = reader.readLine();
+            progressLine();
+        }
         return model;
     }
 
-    private static Residue parseResidue(BufferedReader reader, String firstLine) throws IOException {
+    private Chain parseChain() { //BufferedReader reader, String firstLine
+        var chain = new Chain(currLine.charAt(21));
 
+        while ( currLine != null && currLine.trim().length() > 0 ) {
+
+            if (currLine.startsWith("TER")) {
+                return chain;
+            }
+
+            if (currLine.startsWith("ATOM")) {
+                chain.add(
+                        parseResidue()
+                );
+            }
+
+//            nextLine = reader.readLine();
+            progressLine();
+
+        }
+        return chain;
+    }
+
+
+
+    private Residue parseResidue() { //BufferedReader reader, String firstLine
 
         var residue = new Residue();
 
-        residue.setId(parseInt(firstLine.substring(22, 35)));
+        residue.setId(parseInt(currLine.substring(22, 35)));
 
         //read ATOM lines
-        for ( String line = null; null != (line = reader.readLine()); /*until no more line left*/) {
-            if (line.startsWith("ATOM")){
-                String atomType = "Test"; //line.substring(7, 11)
-                var coords = new HashMap<Character, Double> (3);
-                coords.put('x', parseDouble(line.substring(30, 37)));
-                coords.put('y', parseDouble(line.substring(38, 45)));
-                coords.put('z', parseDouble(line.substring(46, 55)));
+//        for (String line = null; null != (line = reader.readLine()); /*until no more line left*/) {
+        while ( currLine != null && currLine.trim().length() > 0 ) {
+            if (currLine.startsWith("ATOM")) {
+                String atomType = currLine.substring(12, 15);
+                int idx = parseInt(currLine.substring(6, 10));
+                char chainID = currLine.charAt(26);
+//                String parentRes = currLine.substring(17, 19);
 
-                residue.getAtoms().put(parseInt(line.substring(7, 11)), new Atom(atomType, coords, line.charAt(26)));
+                var coords = new HashMap<Character, Double>(3);
+                coords.put('x', parseDouble(currLine.substring(30, 37)));
+                coords.put('y', parseDouble(currLine.substring(38, 45)));
+                coords.put('z', parseDouble(currLine.substring(46, 55)));
+
+                residue.add(idx, new Atom(atomType, coords,chainID, residue));
 
                 // TODO: remove if everything works
-                if (residue.getAtoms().get(parseInt(line.substring(7, 11))).id == parseInt(line.substring(7, 11)))
-                System.err.println("Somethings fucked with the atom id's, PDBParser.java");
+                if (residue.getAtoms().get(parseInt(currLine.substring(7, 11))).id == parseInt(currLine.substring(7, 11)))
+                    System.err.println("Somethings fucked with the atom id's, PDBParser.java");
             }
+
+            progressLine();
         }
 
         return residue;
+    }
+
+    private void progressLine(){
+        try {
+            currLine = reader.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Structure getStructure() {
+        return structure;
     }
 
 /* PDB format

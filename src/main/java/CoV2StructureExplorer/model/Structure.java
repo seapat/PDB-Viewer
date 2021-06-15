@@ -1,4 +1,9 @@
 package CoV2StructureExplorer.model;
 
-public record Structure(Model[] models, int id) {
+import java.util.ArrayList;
+
+public class Structure extends ArrayList<Model> {
+
+    Model[] models;
+    int id;
 }
