@@ -30,38 +30,50 @@
     </repositories>
 
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>javax.json</groupId>-->
-<!--            <artifactId>javax.json-api</artifactId>-->
-<!--            <version>1.1.4</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.glassfish</groupId>
             <artifactId>javax.json</artifactId>
             <version>1.1.4</version>
         </dependency>
+<!--        &lt;!&ndash; API, java.xml.bind module &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>jakarta.xml.bind</groupId>-->
+<!--            <artifactId>jakarta.xml.bind-api</artifactId>-->
+<!--            <version>2.3.2</version>-->
+<!--        </dependency>-->
+<!--        &lt;!&ndash; Runtime, com.sun.xml.bind module &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jaxb</groupId>-->
+<!--            <artifactId>jaxb-runtime</artifactId>-->
+<!--            <version>2.3.2</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.biojava</groupId>
-            <artifactId>biojava-core</artifactId>
-            <version>5.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.biojava</groupId>
-            <artifactId>biojava-structure</artifactId>
-            <version>5.3.0</version>
-            <exclusions>
-                <exclusion>
-                    <!-- jaxb-core and jaxb-impl conflict by providing packages redundantly-->
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.biojava</groupId>-->
+<!--            <artifactId>biojava-core</artifactId>-->
+<!--            <version>5.3.0</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.biojava</groupId>-->
+<!--            <artifactId>biojava-modfinder</artifactId>-->
+<!--            <version>4.2.4</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.biojava</groupId>-->
+<!--            <artifactId>biojava-structure</artifactId>-->
+<!--            <version>5.3.0</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    &lt;!&ndash; jaxb-core and jaxb-impl conflict by providing packages redundantly&ndash;&gt;-->
+<!--                    <artifactId>jaxb-impl</artifactId>-->
+<!--                    <groupId>com.sun.xml.bind</groupId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
 
     </dependencies>
 
