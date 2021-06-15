@@ -3,8 +3,8 @@ module CoV2StructureExplorer {
     requires javafx.fxml;
 
     // parse pdb entries
-    requires biojava.core;
-    requires biojava.structure;
+//    requires biojava.core;
+//    requires biojava.structure;
 
     //javax.json
     requires java.json;
