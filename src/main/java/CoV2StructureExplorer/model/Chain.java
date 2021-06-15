@@ -5,12 +5,19 @@ import java.util.ArrayList;
 // name could be longer than one letter (technically)
 public class Chain extends ArrayList<Residue> {
 
-    char iCode;
+    char chainID;
     int idx = 0;
 
-    public Chain(char icode){
-        this.iCode = icode;
+    public Chain(char code){
+        this.chainID = code;
         this.idx = ++idx;
     }
 
+    public char getChainID() {
+        return chainID;
+    }
+
+    public int getIdx() {
+        return idx;
+    }
 }

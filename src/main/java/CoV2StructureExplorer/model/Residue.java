@@ -1,15 +1,19 @@
 package CoV2StructureExplorer.model;
 
 import java.util.ArrayList;
-import java.util.SortedMap;
 
 public class Residue extends ArrayList<Atom> {
 
-    private SortedMap<Integer, Atom> atoms;
-    private int id;
+    private int id = 0;
+    private String type;
 
-    public SortedMap<Integer, Atom> getAtoms() {
-        return this.atoms;
+    public Residue(int id, String type) {
+        this.id = id;
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public int getId() {

@@ -4,13 +4,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import javax.json.Json;
-import javax.json.JsonReader;
-import javax.json.JsonString;
 import javax.json.JsonValue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.SequenceInputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -19,10 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Stream;
+
 
 public class PDBFile {
     private final String id;
@@ -56,6 +50,7 @@ public class PDBFile {
         String filename = path.getFileName().toString();
         this.id = filename.substring(0, filename.lastIndexOf('.'));
         this.content = getPDBString(path);
+        this.structure = new PDBParser(this.content).getStructure();
     }
 
     // use to populate pdbCodeList based on content of entryField,

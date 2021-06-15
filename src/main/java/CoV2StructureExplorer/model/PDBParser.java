@@ -98,29 +98,37 @@ public class PDBParser {
 
     private Residue parseResidue() { //BufferedReader reader, String firstLine
 
-        var residue = new Residue();
 
-        residue.setId(parseInt(currLine.substring(22, 35)));
+        int resID = parseInt(currLine.substring(23, 27).strip());
+        String resType = currLine.substring(17, 20).strip();
+        var residue = new Residue(resID, resType);
 
         //read ATOM lines
 //        for (String line = null; null != (line = reader.readLine()); /*until no more line left*/) {
         while ( currLine != null && currLine.trim().length() > 0 ) {
+
+            if (!resType.equals(currLine.substring(17, 20).strip())) {
+                return residue;
+            }else {
+                resType = currLine.substring(17,20).strip();
+
+            }
+
             if (currLine.startsWith("ATOM")) {
-                String atomType = currLine.substring(12, 15);
-                int idx = parseInt(currLine.substring(6, 10));
-                char chainID = currLine.charAt(26);
-//                String parentRes = currLine.substring(17, 19);
+                String atomType = currLine.substring(12, 16);
+//                int idx = parseInt(currLine.substring(6, 11).strip());
+                char chainID = currLine.charAt(21);
 
                 var coords = new HashMap<Character, Double>(3);
                 coords.put('x', parseDouble(currLine.substring(30, 37)));
                 coords.put('y', parseDouble(currLine.substring(38, 45)));
                 coords.put('z', parseDouble(currLine.substring(46, 55)));
 
-                residue.add(idx, new Atom(atomType, coords,chainID, residue));
+                residue.add(new Atom(atomType, coords,chainID, residue));
 
                 // TODO: remove if everything works
-                if (residue.getAtoms().get(parseInt(currLine.substring(7, 11))).id == parseInt(currLine.substring(7, 11)))
-                    System.err.println("Somethings fucked with the atom id's, PDBParser.java");
+//                if (residue.get(idx-1).id == idx)
+//                    System.err.println("Somethings fucked with the atom id's, PDBParser.java");
             }
 
             progressLine();

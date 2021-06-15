@@ -4,12 +4,12 @@ import java.util.Map;
 
 public class Atom {
 
-    String type;
-    Residue residue;
-    Map<Character, Double> coords;
-    char chain;
-    Integer id;
-    static Integer globalID = 0;
+    private String type;
+    private Residue residue;
+    private Map<Character, Double> coords;
+    private char chain;
+    private Integer id;
+    private static Integer globalID = 0;
 
     Atom(String atomType, Map<Character, Double> coords, char chain, Residue residue) {
         this.id = ++globalID; //TODO: check if incrementing like this works

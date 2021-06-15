@@ -4,6 +4,13 @@ import java.util.ArrayList;
 
 public class Structure extends ArrayList<Model> {
 
-    Model[] models;
-    int id;
+    int idx = 0;
+
+    public int getIdx() {
+        return idx;
+    }
+
+    public Structure(){
+        this.idx = ++idx;
+    }
 }
