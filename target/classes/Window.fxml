@@ -31,21 +31,20 @@
     </MenuBar>
     <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
         <Tab closable="false" text="Text">
-         <HBox>
-            <children>
-               <VBox HBox.hgrow="NEVER">
-                  <children>
-                      <ToolBar VBox.vgrow="NEVER">
-                          <TextField fx:id="entryField" nodeOrientation="LEFT_TO_RIGHT" prefHeight="25.0" prefWidth="55.0" promptText="PDB ID" />
-                          <Button fx:id="searchButton" alignment="CENTER" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="Search" />
-                          <Button fx:id="parseButton" alignment="CENTER" contentDisplay="CENTER" disable="false" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="Parse" />
-                      </ToolBar>
-                     <ListView fx:id="pdbCodeList" VBox.vgrow="ALWAYS" />
-                  </children>
-               </VBox>
-                  <ListView fx:id="pdbText" style="-fx-font-family: monospace;" HBox.hgrow="ALWAYS" />
-            </children>
-         </HBox>
+            <HBox>
+                <VBox HBox.hgrow="NEVER">
+                    <ToolBar VBox.vgrow="NEVER">
+                        <TextField fx:id="entryField" nodeOrientation="LEFT_TO_RIGHT" prefHeight="25.0"
+                                   prefWidth="55.0" promptText="PDB ID"/>
+                        <Button fx:id="searchButton" alignment="CENTER" mnemonicParsing="false"
+                                nodeOrientation="LEFT_TO_RIGHT" text="Search"/>
+                        <Button fx:id="parseButton" alignment="CENTER" contentDisplay="CENTER" disable="false"
+                                mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="Parse"/>
+                    </ToolBar>
+                    <ListView fx:id="pdbCodeList" style="-fx-font-family: monospace;" VBox.vgrow="ALWAYS"/>
+                </VBox>
+                <ListView fx:id="pdbText" style="-fx-font-family: monospace;" HBox.hgrow="ALWAYS"/>
+            </HBox>
         </Tab>
         <Tab closable="false" text="Visualisation" />
         <Tab closable="false" text="Report" />
