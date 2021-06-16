@@ -34,14 +34,12 @@
             <HBox>
                 <VBox HBox.hgrow="NEVER">
                     <ToolBar VBox.vgrow="NEVER">
-                        <TextField fx:id="entryField" nodeOrientation="LEFT_TO_RIGHT" prefHeight="25.0"
-                                   prefWidth="55.0" promptText="PDB ID"/>
-                        <Button fx:id="parseButton" alignment="CENTER" contentDisplay="CENTER" disable="true"
-                                mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="Parse"/>
+                        <TextField fx:id="entryField" nodeOrientation="LEFT_TO_RIGHT" prefHeight="25.0" prefWidth="55.0" promptText="PDB ID" />
+                        <Button fx:id="parseButton" alignment="CENTER" contentDisplay="CENTER" disable="true" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="Parse" />
                     </ToolBar>
-                    <ListView fx:id="pdbCodeList" style="-fx-font-family: monospace;" VBox.vgrow="ALWAYS"/>
+                    <ListView fx:id="pdbCodeList" prefWidth="100.0" style="-fx-font-family: monospace;" VBox.vgrow="ALWAYS" />
                 </VBox>
-                <ListView fx:id="pdbText" style="-fx-font-family: monospace;" HBox.hgrow="ALWAYS"/>
+                <ListView fx:id="pdbText" style="-fx-font-family: monospace;" HBox.hgrow="ALWAYS" />
             </HBox>
         </Tab>
         <Tab closable="false" text="Visualisation" />

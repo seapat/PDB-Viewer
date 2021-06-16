@@ -19,7 +19,12 @@ import java.util.Scanner;
 public class WindowPresenter {
 
 
-    // TODO: make stage and controller instance variables and update all related methods
+    /*
+    TODO: make stage and controller instance variables and update all related methods
+     Could alternatively create static version with variables for stage, controller, model and
+     methods that are called on variable creation (see PDBURL)
+     */
+
 
     // non-static allows easy reassignment of model
     private PDBFile model;
