@@ -22,22 +22,13 @@ public class WindowPresenter {
 
         var protein = model.getProtein();
 
-        // only allow valid pdb codes
-//        var pdbCodeSize = new SimpleBooleanProperty(controller.getEntryField(), "pdbCodeSize", false);
-//        controller.getEntryField().textProperty().addListener( e -> {
-//            pdbCodeSize.set(controller.getEntryField().getText().length() <= 4);
-//            controller.getParseButton().setDisable(!pdbCodeSize.get());
-//        });
-
-        // TODO: these two overwrite each other, how fix this
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
-        controller.getParseButton().disableProperty().bind(Bindings.or(
+        controller.getParseButton().disableProperty().bind(
+                Bindings.or(
                 controller.getEntryField().textProperty().length().isEqualTo(4),
-                controller.getPdbCodeList().focusedProperty()
-
-        ).not());
-//        controller.getParseButton().disableProperty().bind(
-//                controller.getEntryField().textProperty().length().lessThanOrEqualTo(4).not());
+                controller.getPdbCodeList().focusedProperty())
+                .not()
+        );
 
         // Button Listeners
         controller.getParseButton().setOnAction(e -> {
@@ -61,11 +52,7 @@ public class WindowPresenter {
         // get default value for List of pdb codes
         controller.getPdbCodeList().setItems(model.getPDBEntries(controller.getEntryField().getText()));
 
-        // TODO: remove search button if decide to stick with live update
-        controller.getSearchButton().setOnAction(e ->
-                controller.getPdbCodeList().setItems(
-                        model.getPDBEntries(controller.getEntryField().getText()))
-        );
+
         controller.getEntryField().textProperty().addListener(e ->
                 controller.getPdbCodeList().setItems(
                         model.getPDBEntries(controller.getEntryField().getText()))
