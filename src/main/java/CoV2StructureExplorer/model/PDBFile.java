@@ -44,7 +44,7 @@ public class PDBFile {
     public PDBFile(String pdbID) {
         this.pdbID = pdbID;
         this.content = getPDBString(this.pdbID);
-        this.structure = new PDBParser(this.content).getStructure();
+        this.structure = new PDBParser(pdbID, this.content).getStructure();
     }
 
     // load locally
@@ -52,7 +52,7 @@ public class PDBFile {
         String filename = path.getFileName().toString();
         this.pdbID = filename.substring(0, filename.lastIndexOf('.'));
         this.content = getPDBString(path);
-        this.structure = new PDBParser(this.content).getStructure();
+        this.structure = new PDBParser(pdbID,this.content).getStructure();
     }
 
     // use to populate pdbCodeList based on content of entryField,

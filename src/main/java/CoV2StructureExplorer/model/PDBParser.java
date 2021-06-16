@@ -18,15 +18,17 @@ public class PDBParser {
             - A residue consists of atoms
 
     This Class (and all corresponding ones) try to mimic this architecture.
+
+    A single reader object is created for the instance of the class, lines are progressed from various methods.
     */
 
     private final Structure structure;
     private BufferedReader reader;
     private String currLine;
 
-    PDBParser(String pdbFile) {
+    PDBParser(String pdbID,String pdbFile) {
 
-        structure = new Structure();
+        structure = new Structure(pdbID);
 
         try {
             reader = new BufferedReader(new StringReader(pdbFile));
@@ -36,7 +38,7 @@ public class PDBParser {
             while ( currLine != null && currLine.trim().length() > 0 ) {
                 if (currLine.startsWith("ATOM")) {
                     structure.add(
-                            parseModel()
+                            parseModel(structure)
                     );
                 }
                 progressLine();
@@ -49,8 +51,8 @@ public class PDBParser {
 
     }
 
-    private Model parseModel() {
-        var model = new Model();
+    private Model parseModel(Structure structure) {
+        var model = new Model(structure);
 
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
@@ -78,7 +80,7 @@ public class PDBParser {
 
             if (currLine.startsWith("ATOM")) {
                 chain.add(
-                        parseResidue()
+                        parseResidue(chain)
                 );
             }
             progressLine();
@@ -89,12 +91,12 @@ public class PDBParser {
 
 
 
-    private Residue parseResidue() { //BufferedReader reader, String firstLine
+    private Residue parseResidue(Chain chain) { //BufferedReader reader, String firstLine
 
 
         int resID = parseInt(currLine.substring(23, 27).strip());
         String resType = currLine.substring(17, 20).strip();
-        var residue = new Residue(resID, resType);
+        var residue = new Residue(resID, resType, chain);
 
         //read ATOM lines
 //        for (String line = null; null != (line = reader.readLine()); /*until no more line left*/) {
@@ -112,16 +114,13 @@ public class PDBParser {
                 int id = parseInt(currLine.substring(6, 11).strip());
                 char chainID = currLine.charAt(21);
 
-                var coords = new HashMap<Character, Double>(3);
-                coords.put('x', parseDouble(currLine.substring(30, 38)));
-                coords.put('y', parseDouble(currLine.substring(38, 46)));
-                coords.put('z', parseDouble(currLine.substring(46, 55)));
+                var position = new Atom.Position(
+                        parseDouble(currLine.substring(30, 38)),
+                        parseDouble(currLine.substring(38, 46)),
+                        parseDouble(currLine.substring(46, 55))
+                );
 
-                residue.add(new Atom(id,atomType, coords,chainID, residue));
-
-                // TODO: remove if everything works
-//                if (residue.get(idx-1).id == idx)
-//                    System.err.println("Somethings fucked with the atom id's, PDBParser.java");
+                residue.add(new Atom(id,atomType,chainID, residue, position));
             }
 
             progressLine();
@@ -166,8 +165,5 @@ public class PDBParser {
     - MASTER contains info about how many records are in there
     - use to check if everything went smoothly
 - END denotes last line of file
-
-idea: does .readline() automatically progress the file, ie advances reader to the next line on call?
-    - could allow global progress through the pdb file
  */
 }

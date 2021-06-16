@@ -4,12 +4,18 @@ import java.util.ArrayList;
 
 public class Residue extends ArrayList<Atom> {
 
-    private int id;
-    private String type;
+    private final int id;
+    private final String type;
+    private final Chain chain;
 
-    public Residue(int id, String type) {
+    public Chain getChain() {
+        return chain;
+    }
+
+    public Residue(int id, String type, Chain chain) {
         this.id = id;
         this.type = type;
+        this.chain = chain;
     }
 
     public String getType() {

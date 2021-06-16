@@ -5,8 +5,8 @@ import java.util.ArrayList;
 // name could be longer than one letter (technically)
 public class Chain extends ArrayList<Residue> {
 
-    char chainID;
-    int idx = 0;
+    private final char chainID;
+    private int idx = 0;
 
     public Chain(char code){
         this.chainID = code;

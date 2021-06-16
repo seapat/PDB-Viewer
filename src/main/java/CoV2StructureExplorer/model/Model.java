@@ -4,14 +4,20 @@ import java.util.ArrayList;
 
 public class Model extends ArrayList<Chain> {
 
-    int idx = 0;
+    private int id = 0;
+    private final Structure structure;
 
-    public int getIdx() {
-        return idx;
+    public int getId() {
+        return id;
     }
 
-    public Model(){
-        this.idx = ++idx;
+    public Structure getStructure() {
+        return structure;
+    }
+
+    public Model(Structure structure){
+        this.id = ++id;
+        this.structure = structure;
     }
 
 }
