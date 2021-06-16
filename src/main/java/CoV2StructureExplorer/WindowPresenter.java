@@ -35,6 +35,7 @@ public class WindowPresenter {
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
         controller.getParseButton().disableProperty().bind(
                 Bindings.or(
+                        //TODO: disable button if already parsing (concurrency)
                         controller.getEntryField().textProperty().length().isEqualTo(4),
                         controller.getPdbCodeList().focusedProperty())
                         .not()

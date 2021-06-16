@@ -72,41 +72,4 @@ public class PDBFile {
         return this.structure;
     }
 
-    //    private static String getPDBString(String pdbID) {
-//        try {
-//            var code = pdbID.toLowerCase();
-//            var url = new URL("https://files.rcsb.org/download/" + code + ".pdb"); //"https://data.rcsb.org/rest/v1/core/polymer_entity/"+ code + "/1"
-//            return new String(PDBUrl.getFromURL(url).readAllBytes());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            System.err.println("Program requires valid pdb code found at rcsb.org");
-//            return "";
-//        }
-//    }
-
-    // use to populate pdbCodeList based on content of entryField,
-//    public static ObservableList<String> getPDBEntries(String query) {
-//
-//        if (query.isEmpty()) {
-//            // Corona-related pdb codes if selection is empty, If you just want to see any file, these are enough
-//            // You don't want to scroll through all codes if you are "just testing", else you have a code at hand
-//            return FXCollections.observableArrayList(
-//                    "6ZMO", "6ZOJ", "6ZPE", "6ZP5", "6ZP4", "6ZP7", "6ZOX", "6ZOW", "6ZOZ", "6ZOY", "6ZOK", "6ZON",
-//                    "6ZP1", "6ZP0", "6ZP2", "5R84", "5R83", "5R7Y", "5R80", "5R82", "5R81", "5R8T", "5R7Z", "5REA", "5REC"
-//            );
-//        }
-//        try {
-//            var hits = PDBUrl.getPDBEntries().stream().filter(s -> ((String)s).startsWith(query.toUpperCase())).toList();
-//            if (hits.isEmpty()) {
-//                hits = new ArrayList<>() {{
-//                    add("Nothing Found");
-//                }};
-//            }
-//            return FXCollections.observableArrayList(hits);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return FXCollections.observableArrayList("Error", e.toString());
-//        }
-//    }
-
 }

@@ -17,11 +17,10 @@ import java.util.ArrayList;
 public class PDBUrl {
     /*
     Class that handles communication with rcsb.org, preferably everything is static/only exists once
-    TODO: perhaps Singleton pattern nad instantiate instead?
      */
 
-    // TODO: Could create a nested class to ensure that everything is static, good idea?
-    public static class inner {}
+    // No instances allowed / needed
+    private PDBUrl(){}
 
     private static final ArrayList<String> pdbEntries = fillEntries();
     private static ArrayList<String> fillEntries() {
