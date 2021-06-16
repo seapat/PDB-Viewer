@@ -13,7 +13,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         var view = new Window();
-        var model = new PDBFile("3NIR"); //TODO: make this not required to parse at start
+        var model = new PDBFile("1a3n"); //TODO: make this not required to parse at start
 
         WindowPresenter.setup(primaryStage, view.getController(), model);
 
