@@ -36,9 +36,7 @@
                     <ToolBar VBox.vgrow="NEVER">
                         <TextField fx:id="entryField" nodeOrientation="LEFT_TO_RIGHT" prefHeight="25.0"
                                    prefWidth="55.0" promptText="PDB ID"/>
-                        <Button fx:id="searchButton" alignment="CENTER" mnemonicParsing="false"
-                                nodeOrientation="LEFT_TO_RIGHT" text="Search"/>
-                        <Button fx:id="parseButton" alignment="CENTER" contentDisplay="CENTER" disable="false"
+                        <Button fx:id="parseButton" alignment="CENTER" contentDisplay="CENTER" disable="true"
                                 mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="Parse"/>
                     </ToolBar>
                     <ListView fx:id="pdbCodeList" style="-fx-font-family: monospace;" VBox.vgrow="ALWAYS"/>
