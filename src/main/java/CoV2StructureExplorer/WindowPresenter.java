@@ -3,7 +3,6 @@ package CoV2StructureExplorer;
 import CoV2StructureExplorer.model.PDBFile;
 import CoV2StructureExplorer.model.PDBUrl;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
@@ -19,67 +18,15 @@ import java.util.Scanner;
 
 public class WindowPresenter {
 
+
+    // TODO: make stage and controller instance variables and update all related methods
+
+    // non-static allows easy reassignment of model
     private PDBFile model;
-
-
-//    public static void setup(Stage stage, WindowController controller, PDBFile model) {
-//
-//        // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
-//        controller.getParseButton().disableProperty().bind(
-//                Bindings.or(
-//                controller.getEntryField().textProperty().length().isEqualTo(4),
-//                controller.getPdbCodeList().focusedProperty())
-//                .not()
-//        );
-//
-//        // Button Listeners
-//        controller.getParseButton().setOnAction(e -> {
-//            // FIXME: load new CoV2StructureExplore.CoV2StructureExplorer.model on parse, currently id's not changing
-//            //  (check assignment 4, you did something similar there)
-//            var selection = controller.getPdbCodeList().getSelectionModel().getSelectedItem();
-//            var enteredQuery = controller.getEntryField().getText();
-//            String pdbCode;
-//            if (enteredQuery.length() != 4) {
-//                pdbCode = selection;
-//            } else {
-//                pdbCode = enteredQuery;
-//            }
-//
-//            clearAll(controller, model);
-////            model.setContent(pdbCode);
-//            model = new PDBFile(pdbCode);
-//            writePDB(controller, model);
-//            controller.getPdbText().scrollTo(0);
-//        });
-//
-//        // get default value for List of pdb codes
-//        controller.getPdbCodeList().setItems(model.getPDBEntries(controller.getEntryField().getText()));
-//
-//
-//        controller.getEntryField().textProperty().addListener(e ->
-//                controller.getPdbCodeList().setItems(
-//                        model.getPDBEntries(controller.getEntryField().getText()))
-//        );
-//
-//        // Menu item Listeners
-//        controller.getAboutMenu().setOnAction(e -> {
-//            var alert = new Alert(Alert.AlertType.INFORMATION);
-//            alert.setTitle("About this thing!");
-//            alert.setHeaderText("About this program");
-//            alert.setContentText("""
-//                This application fetches and visualizes pdb Files from rcsb.org
-//
-//                Author: Sean Klein
-//                """);
-//            alert.showAndWait();
-//        });
-//        controller.getOpenMenu().setOnAction(e -> openPDB(stage,controller,model));
-//        controller.getClearMenu().setOnAction(e -> clearAll(controller,model));
-//        controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
-//    }
-
     WindowPresenter(Stage stage, WindowController controller){ //, PDBFile model
 
+
+        // Button Listeners
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
         controller.getParseButton().disableProperty().bind(
                 Bindings.or(
@@ -87,8 +34,6 @@ public class WindowPresenter {
                         controller.getPdbCodeList().focusedProperty())
                         .not()
         );
-
-        // Button Listeners
         controller.getParseButton().setOnAction(e -> {
             var selection = controller.getPdbCodeList().getSelectionModel().getSelectedItem();
             var enteredQuery = controller.getEntryField().getText();
@@ -107,7 +52,6 @@ public class WindowPresenter {
 
         // get default value for List of pdb codes
         controller.getPdbCodeList().setItems(PDBUrl.getPDBEntries(controller.getEntryField().getText()));
-
         controller.getEntryField().textProperty().addListener(e ->
                 controller.getPdbCodeList().setItems(
                         PDBUrl.getPDBEntries(controller.getEntryField().getText()))
@@ -132,23 +76,29 @@ public class WindowPresenter {
 
 
     private static void savePDB(Stage stage, WindowController controller, PDBFile model){
-        DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Please choose saving location");
-        File selectedDirectory = chooser.showDialog(stage);
-        var path = selectedDirectory.toPath(); //selectedDirectory.getAbsolutePath();
+        if (model == null){
+            var info = new Alert(Alert.AlertType.ERROR, "No pdb entry loaded!");
+            info.showAndWait();
+        } else {
+            DirectoryChooser chooser = new DirectoryChooser();
+            chooser.setTitle("Please choose saving location");
+            File selectedDirectory = chooser.showDialog(stage);
+            var path = selectedDirectory.toPath(); //selectedDirectory.getAbsolutePath();
 
-        // only save if user confirms chosen path
-        var alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("");
-        alert.setHeaderText("Do you want to save the file?");
-        alert.setContentText("directory: " + path);
-        alert.showAndWait()
-                .filter(response -> response == ButtonType.OK)
-                .ifPresent(response -> {
-                    model.savePDBFile(path);
-                    var info = new Alert(Alert.AlertType.INFORMATION, "Saved!");
-                    info.showAndWait();
-                });
+            // only save if user confirms chosen path
+            var alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("");
+            alert.setHeaderText("Do you want to save the file?");
+            alert.setContentText("directory: " + path);
+            alert.showAndWait()
+                    .filter(response -> response == ButtonType.OK)
+                    .ifPresent(response -> {
+                        model.savePDBFile(path);
+                        var info = new Alert(Alert.AlertType.INFORMATION, "Saved!");
+                        info.showAndWait();
+                    });
+        }
+
     }
 
     private static void openPDB(Stage stage, WindowController controller, PDBFile model) {
@@ -168,18 +118,11 @@ public class WindowPresenter {
 
     private static void clearAll(WindowController controller, PDBFile model) {
 
-
-//        controller.getPdbText().setText("");
         controller.getPdbText().getItems().clear();
 
         // TODO: clear visualisation
 //        controller.getTreePane().getChildren().clear();
 //        CoV2StructureExplore.CoV2StructureExplorer.model.setRoot("");
-
-        // TODO: disable save button if no CoV2StructureExplore.CoV2StructureExplorer.model loaded
-//        controller.getDrawButton().setDisable(true);
-//        controller.getChooseEdgeStyle().setDisable(true);
-//        controller.getIsScaled().setDisable(true);
     }
 
     private static void writePDB(WindowController controller, PDBFile model){

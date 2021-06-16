@@ -55,6 +55,7 @@ public class PDBFile {
         try {
             Files.writeString(Paths.get(path.toString(), this.pdbID + ".pdb" ), this.content);
         } catch (IOException e) {
+
             e.printStackTrace();
         }
     }
