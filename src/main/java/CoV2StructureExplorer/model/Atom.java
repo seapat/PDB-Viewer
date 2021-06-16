@@ -11,8 +11,8 @@ public class Atom {
     private Integer id;
     private static Integer globalID = 0;
 
-    Atom(String atomType, Map<Character, Double> coords, char chain, Residue residue) {
-        this.id = ++globalID; //TODO: check if incrementing like this works
+    Atom(int id, String atomType, Map<Character, Double> coords, char chain, Residue residue) {
+        this.id = id;//++globalID; //TODO: check if incrementing like this works
         this.residue = residue;
         this.type = atomType;
         this.coords = coords;

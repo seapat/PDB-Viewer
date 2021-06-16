@@ -19,36 +19,38 @@ import java.util.ArrayList;
 
 
 public class PDBFile {
-    private final String id;
+    private final String pdbID;
     private String content;
     private Structure structure;
-    private ArrayList pdbEntries;
+    private ArrayList<String> pdbEntries;
 
     // load url once instead of every function call
     {
         try {
             var url = new URL("https://data.rcsb.org/rest/v1/holdings/current/entry_ids");
             var reader = Json.createReader(getFromURL(url));
-            pdbEntries = new ArrayList(reader.readArray().stream()
+            pdbEntries = new ArrayList<String>(reader.readArray().stream()
                     .map(JsonValue::toString)
-                    // Strings look like this: "\"BecauseJson\""
-                    .map(s -> s.replace("\"", "")).sorted().toList());
+                    // strings are enclosed by "-signs twice because Json
+                    .map(s -> s.replace("\"", ""))
+                    .sorted()
+                    .toList());
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
     }
 
     // get via code from pdb
-    public PDBFile(String id) {
-        this.id = id;
-        this.content = getPDBString(this.id);
+    public PDBFile(String pdbID) {
+        this.pdbID = pdbID;
+        this.content = getPDBString(this.pdbID);
         this.structure = new PDBParser(this.content).getStructure();
     }
 
     // load locally
     public PDBFile(Path path) {
         String filename = path.getFileName().toString();
-        this.id = filename.substring(0, filename.lastIndexOf('.'));
+        this.pdbID = filename.substring(0, filename.lastIndexOf('.'));
         this.content = getPDBString(path);
         this.structure = new PDBParser(this.content).getStructure();
     }
@@ -59,8 +61,10 @@ public class PDBFile {
         if (query.isEmpty()) {
             // Corona-related pdb codes if selection is empty, If you just want to see any file, these are enough
             // You don't want to scroll through all codes if you are "just testing", else you have a code at hand
-            return FXCollections.observableArrayList("6ZMO", "6ZOJ", "6ZPE", "6ZP5", "6ZP4", "6ZP7", "6ZOX", "6ZOW", "6ZOZ", "6ZOY", "6ZOK", "6ZON", "6ZP1", "6ZP0", "6ZP2",
-                    "5R84", "5R83", "5R7Y", "5R80", "5R82", "5R81", "5R8T", "5R7Z", "5REA", "5REC");
+            return FXCollections.observableArrayList(
+                    "6ZMO", "6ZOJ", "6ZPE", "6ZP5", "6ZP4", "6ZP7", "6ZOX", "6ZOW", "6ZOZ", "6ZOY", "6ZOK", "6ZON",
+                    "6ZP1", "6ZP0", "6ZP2", "5R84", "5R83", "5R7Y", "5R80", "5R82", "5R81", "5R8T", "5R7Z", "5REA", "5REC"
+            );
         }
         try {
             var hits = pdbEntries.stream().filter(s -> ((String)s).startsWith(query.toUpperCase())).toList();
@@ -123,14 +127,14 @@ public class PDBFile {
     // FIXME: use this.content and have one less arguments to hand over?
     public void savePDBFile(Path path) {
         try {
-            Files.writeString(Paths.get(path.toString(), this.id + ".pdb" ), this.content);
+            Files.writeString(Paths.get(path.toString(), this.pdbID + ".pdb" ), this.content);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public String getId() {
-        return id;
+    public String getPdbID() {
+        return pdbID;
     }
 
     public String getContent() {

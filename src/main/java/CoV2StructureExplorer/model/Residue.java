@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Residue extends ArrayList<Atom> {
 
-    private int id = 0;
+    private int id;
     private String type;
 
     public Residue(int id, String type) {
@@ -20,7 +20,4 @@ public class Residue extends ArrayList<Atom> {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
 }

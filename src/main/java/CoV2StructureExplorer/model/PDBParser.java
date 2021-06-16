@@ -24,7 +24,6 @@ public class PDBParser {
     private BufferedReader reader;
     private String currLine;
 
-    // TODO: implement me
     PDBParser(String pdbFile) {
 
         structure = new Structure();
@@ -32,7 +31,6 @@ public class PDBParser {
         try {
             reader = new BufferedReader(new StringReader(pdbFile));
 
-//            nextLine = reader.readLine();
             progressLine();
 
             while ( currLine != null && currLine.trim().length() > 0 ) {
@@ -41,7 +39,6 @@ public class PDBParser {
                             parseModel()
                     );
                 }
-//                nextLine = reader.readLine();
                 progressLine();
             }
 
@@ -65,14 +62,12 @@ public class PDBParser {
                         parseChain()
                 );
             }
-
-//                nextLine = reader.readLine();
             progressLine();
         }
         return model;
     }
 
-    private Chain parseChain() { //BufferedReader reader, String firstLine
+    private Chain parseChain() {
         var chain = new Chain(currLine.charAt(21));
 
         while ( currLine != null && currLine.trim().length() > 0 ) {
@@ -86,8 +81,6 @@ public class PDBParser {
                         parseResidue()
                 );
             }
-
-//            nextLine = reader.readLine();
             progressLine();
 
         }
@@ -115,16 +108,16 @@ public class PDBParser {
             }
 
             if (currLine.startsWith("ATOM")) {
-                String atomType = currLine.substring(12, 16);
-//                int idx = parseInt(currLine.substring(6, 11).strip());
+                String atomType = currLine.substring(12, 16).strip();
+                int id = parseInt(currLine.substring(6, 11).strip());
                 char chainID = currLine.charAt(21);
 
                 var coords = new HashMap<Character, Double>(3);
-                coords.put('x', parseDouble(currLine.substring(30, 37)));
-                coords.put('y', parseDouble(currLine.substring(38, 45)));
+                coords.put('x', parseDouble(currLine.substring(30, 38)));
+                coords.put('y', parseDouble(currLine.substring(38, 46)));
                 coords.put('z', parseDouble(currLine.substring(46, 55)));
 
-                residue.add(new Atom(atomType, coords,chainID, residue));
+                residue.add(new Atom(id,atomType, coords,chainID, residue));
 
                 // TODO: remove if everything works
 //                if (residue.get(idx-1).id == idx)
