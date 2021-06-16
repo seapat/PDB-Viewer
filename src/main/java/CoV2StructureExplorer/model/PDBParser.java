@@ -3,7 +3,6 @@ package CoV2StructureExplorer.model;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.HashMap;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;

@@ -65,6 +65,7 @@ public class PDBUrl {
     }
 
     // use to populate pdbCodeList based on content of entryField
+    // FIXME: this shouldn't use javafx classes here
     public static ObservableList<String> getPDBEntries(String query) {
 
         if (query.isEmpty()) {
@@ -86,6 +87,18 @@ public class PDBUrl {
         } catch (Exception e) {
             e.printStackTrace();
             return FXCollections.observableArrayList("Error", e.toString());
+        }
+    }
+
+    protected static String getPDBString(String pdbID) {
+        try {
+            var code = pdbID.toLowerCase();
+            var url = new URL("https://files.rcsb.org/download/" + code + ".pdb"); //"https://data.rcsb.org/rest/v1/core/polymer_entity/"+ code + "/1"
+            return new String(PDBUrl.getFromURL(url).readAllBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Program requires valid pdb code found at rcsb.org");
+            return "";
         }
     }
 
