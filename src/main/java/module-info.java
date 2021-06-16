@@ -2,7 +2,7 @@ module CoV2StructureExplorer {
     requires javafx.controls;
     requires javafx.fxml;
 
-    // parse pdb entries
+    // parse pdb entries, DEPENDENCY HELL
 //    requires biojava.core;
 //    requires biojava.structure;
 
