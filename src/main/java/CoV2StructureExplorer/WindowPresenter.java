@@ -1,6 +1,7 @@
 package CoV2StructureExplorer;
 
 import CoV2StructureExplorer.model.PDBFile;
+import CoV2StructureExplorer.model.PDBUrl;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -18,22 +19,77 @@ import java.util.Scanner;
 
 public class WindowPresenter {
 
-    public static void setup(Stage stage, WindowController controller, PDBFile model) {
+    private PDBFile model;
 
-        var protein = model.getProtein();
+
+//    public static void setup(Stage stage, WindowController controller, PDBFile model) {
+//
+//        // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
+//        controller.getParseButton().disableProperty().bind(
+//                Bindings.or(
+//                controller.getEntryField().textProperty().length().isEqualTo(4),
+//                controller.getPdbCodeList().focusedProperty())
+//                .not()
+//        );
+//
+//        // Button Listeners
+//        controller.getParseButton().setOnAction(e -> {
+//            // FIXME: load new CoV2StructureExplore.CoV2StructureExplorer.model on parse, currently id's not changing
+//            //  (check assignment 4, you did something similar there)
+//            var selection = controller.getPdbCodeList().getSelectionModel().getSelectedItem();
+//            var enteredQuery = controller.getEntryField().getText();
+//            String pdbCode;
+//            if (enteredQuery.length() != 4) {
+//                pdbCode = selection;
+//            } else {
+//                pdbCode = enteredQuery;
+//            }
+//
+//            clearAll(controller, model);
+////            model.setContent(pdbCode);
+//            model = new PDBFile(pdbCode);
+//            writePDB(controller, model);
+//            controller.getPdbText().scrollTo(0);
+//        });
+//
+//        // get default value for List of pdb codes
+//        controller.getPdbCodeList().setItems(model.getPDBEntries(controller.getEntryField().getText()));
+//
+//
+//        controller.getEntryField().textProperty().addListener(e ->
+//                controller.getPdbCodeList().setItems(
+//                        model.getPDBEntries(controller.getEntryField().getText()))
+//        );
+//
+//        // Menu item Listeners
+//        controller.getAboutMenu().setOnAction(e -> {
+//            var alert = new Alert(Alert.AlertType.INFORMATION);
+//            alert.setTitle("About this thing!");
+//            alert.setHeaderText("About this program");
+//            alert.setContentText("""
+//                This application fetches and visualizes pdb Files from rcsb.org
+//
+//                Author: Sean Klein
+//                """);
+//            alert.showAndWait();
+//        });
+//        controller.getOpenMenu().setOnAction(e -> openPDB(stage,controller,model));
+//        controller.getClearMenu().setOnAction(e -> clearAll(controller,model));
+//        controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
+//    }
+
+    WindowPresenter(Stage stage, WindowController controller){ //, PDBFile model
 
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
         controller.getParseButton().disableProperty().bind(
                 Bindings.or(
-                controller.getEntryField().textProperty().length().isEqualTo(4),
-                controller.getPdbCodeList().focusedProperty())
-                .not()
+                        controller.getEntryField().textProperty().length().isEqualTo(4),
+                        controller.getPdbCodeList().focusedProperty())
+                        .not()
         );
 
         // Button Listeners
         controller.getParseButton().setOnAction(e -> {
-            // FIXME: load new CoV2StructureExplore.CoV2StructureExplorer.model on parse, currently id's not changing
-            //  (check assignment 4, you did something similar there)
             var selection = controller.getPdbCodeList().getSelectionModel().getSelectedItem();
             var enteredQuery = controller.getEntryField().getText();
             String pdbCode;
@@ -44,18 +100,17 @@ public class WindowPresenter {
             }
 
             clearAll(controller, model);
-            model.setContent(pdbCode);
+            this.model = new PDBFile(pdbCode);
             writePDB(controller, model);
             controller.getPdbText().scrollTo(0);
         });
 
         // get default value for List of pdb codes
-        controller.getPdbCodeList().setItems(model.getPDBEntries(controller.getEntryField().getText()));
-
+        controller.getPdbCodeList().setItems(PDBUrl.getPDBEntries(controller.getEntryField().getText()));
 
         controller.getEntryField().textProperty().addListener(e ->
                 controller.getPdbCodeList().setItems(
-                        model.getPDBEntries(controller.getEntryField().getText()))
+                        PDBUrl.getPDBEntries(controller.getEntryField().getText()))
         );
 
         // Menu item Listeners
@@ -74,6 +129,7 @@ public class WindowPresenter {
         controller.getClearMenu().setOnAction(e -> clearAll(controller,model));
         controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
     }
+
 
     private static void savePDB(Stage stage, WindowController controller, PDBFile model){
         DirectoryChooser chooser = new DirectoryChooser();

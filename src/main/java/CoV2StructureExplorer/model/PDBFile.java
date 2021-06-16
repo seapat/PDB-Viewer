@@ -19,26 +19,16 @@ import java.util.ArrayList;
 
 
 public class PDBFile {
-    private final String pdbID;
-    private String content;
-    private Structure structure;
-    private ArrayList<String> pdbEntries;
+    /*
+    Right now, handles IO for pdb files, also serves as container for Protein structure and file content
 
-    // load url once instead of every function call
-    {
-        try {
-            var url = new URL("https://data.rcsb.org/rest/v1/holdings/current/entry_ids");
-            var reader = Json.createReader(getFromURL(url));
-            pdbEntries = new ArrayList<String>(reader.readArray().stream()
-                    .map(JsonValue::toString)
-                    // strings are enclosed by "-signs twice because Json
-                    .map(s -> s.replace("\"", ""))
-                    .sorted()
-                    .toList());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-    }
+    FIXME: might want to separate IO from Structure, could move file content to structure calls,
+     everything else is redundant already
+     */
+
+    private final String pdbID;
+    private final String content;
+    private final Structure structure;
 
     // get via code from pdb
     public PDBFile(String pdbID) {
@@ -47,7 +37,7 @@ public class PDBFile {
         this.structure = new PDBParser(pdbID, this.content).getStructure();
     }
 
-    // load locally
+    // load l ocally
     public PDBFile(Path path) {
         String filename = path.getFileName().toString();
         this.pdbID = filename.substring(0, filename.lastIndexOf('.'));
@@ -56,7 +46,7 @@ public class PDBFile {
     }
 
     // use to populate pdbCodeList based on content of entryField,
-    public ObservableList<String> getPDBEntries(String query) {
+    public static ObservableList<String> getPDBEntries(String query) {
 
         if (query.isEmpty()) {
             // Corona-related pdb codes if selection is empty, If you just want to see any file, these are enough
@@ -67,9 +57,9 @@ public class PDBFile {
             );
         }
         try {
-            var hits = pdbEntries.stream().filter(s -> ((String)s).startsWith(query.toUpperCase())).toList();
+            var hits = PDBUrl.getPDBEntries().stream().filter(s -> ((String)s).startsWith(query.toUpperCase())).toList();
             if (hits.isEmpty()) {
-                hits = new ArrayList<String>() {{
+                hits = new ArrayList<>() {{
                     add("Nothing Found");
                 }};
             }
@@ -94,33 +84,11 @@ public class PDBFile {
         try {
             var code = pdbID.toLowerCase();
             var url = new URL("https://files.rcsb.org/download/" + code + ".pdb"); //"https://data.rcsb.org/rest/v1/core/polymer_entity/"+ code + "/1"
-            return new String(getFromURL(url).readAllBytes());
+            return new String(PDBUrl.getFromURL(url).readAllBytes());
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Program requires valid pdb code found at rcsb.org");
             return "";
-        }
-    }
-
-    public static InputStream getFromURL(URL url){
-
-        try {
-            var connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            return connection.getInputStream();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            var errorString = """
-                    Couldn't retrieve the PDB code.
-                    There is probably no regular .pdb file available.
-                    Or the code does not exist at all.
-                   
-                    Error Message:
-                    """ + e;
-            System.err.println("\n" + errorString);
-            return new ByteArrayInputStream(errorString.getBytes(StandardCharsets.UTF_8));
         }
     }
 
@@ -139,14 +107,6 @@ public class PDBFile {
 
     public String getContent() {
         return content;
-    }
-
-    public void setContent(String code) {
-        this.content = getPDBString(code);
-    }
-
-    public void setContent(Path path) {
-        this.content = getPDBString(path);
     }
 
     public Structure getProtein() {

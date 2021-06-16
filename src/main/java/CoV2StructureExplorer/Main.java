@@ -13,9 +13,10 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         var view = new Window();
-        var model = new PDBFile("1a3n"); //TODO: make this not required to parse at start
+//        var model = new PDBFile("1a3n"); //TODO: make this not required to parse at start
 
-        WindowPresenter.setup(primaryStage, view.getController(), model);
+//        WindowPresenter.setup(primaryStage, view.getController(), model);
+        var presenter = new WindowPresenter(primaryStage, view.getController());
 
         primaryStage.setScene(new Scene(view.getRoot()));
         primaryStage.setTitle("CoV2Structure Explorer");

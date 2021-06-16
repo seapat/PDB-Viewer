@@ -10,6 +10,9 @@ import static java.lang.Integer.parseInt;
 
 public class PDBParser {
     /*
+    Reads the content of .pdb files.
+    A single reader object is created for the instance of the class, lines are progressed from various methods.
+
     From The Biopython Structural Bioinformatics FAQ:
         The Structure object follows the so-called SMCRA (Structure/Model/Chain/Residue/Atom) architecture:
             - A structure consists of models
@@ -18,9 +21,9 @@ public class PDBParser {
             - A residue consists of atoms
 
     This Class (and all corresponding ones) try to mimic this architecture.
-
-    A single reader object is created for the instance of the class, lines are progressed from various methods.
     */
+
+    //TODO: perhaps make this static? see pdbURL on how to create structure without instantiation
 
     private final Structure structure;
     private BufferedReader reader;
@@ -91,15 +94,14 @@ public class PDBParser {
 
 
 
-    private Residue parseResidue(Chain chain) { //BufferedReader reader, String firstLine
+    private Residue parseResidue(Chain chain) {
 
 
         int resID = parseInt(currLine.substring(23, 27).strip());
         String resType = currLine.substring(17, 20).strip();
         var residue = new Residue(resID, resType, chain);
 
-        //read ATOM lines
-//        for (String line = null; null != (line = reader.readLine()); /*until no more line left*/) {
+        // parse ATOM lines to Atom objects
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
             if (!resType.equals(currLine.substring(17, 20).strip())) {
@@ -125,11 +127,14 @@ public class PDBParser {
 
             progressLine();
         }
-
         return residue;
     }
 
+
     private void progressLine(){
+        /*
+        central Place to manage Exception caused by reader
+         */
         try {
             currLine = reader.readLine();
         } catch (IOException e) {
