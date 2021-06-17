@@ -52,7 +52,7 @@
                 <top>
                     <ToolBar BorderPane.alignment="CENTER">
                   <items>
-                     <Slider fx:id="radiusScale" max="2.0" min="0.1" value="1.0" />
+                     <Slider fx:id="radiusScale" max="1.0" min="0.05" value="0.5" />
                   </items></ToolBar>
                 </top>
                 <bottom>
