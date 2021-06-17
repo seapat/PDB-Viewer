@@ -1,28 +1,23 @@
 package CoV2StructureExplorer;
 
 import CoV2StructureExplorer.model.PDBFile;
-import CoV2StructureExplorer.model.PDBUrl;
+import CoV2StructureExplorer.model.PDBWeb;
 import CoV2StructureExplorer.view.BallsOnly;
 import CoV2StructureExplorer.view.MouseInteraction;
 import javafx.beans.property.Property;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.geometry.Point3D;
-import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
-import javafx.scene.transform.Translate;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -86,11 +81,11 @@ public class WindowPresenter {
         // get default value for List of pdb codes
         controller.getPdbCodeList().setItems(
                 FXCollections.observableArrayList(
-                        PDBUrl.getPDBEntries(controller.getEntryField().getText())));
+                        PDBWeb.getPDBEntries(controller.getEntryField().getText())));
         controller.getEntryField().textProperty().addListener(e ->
                 controller.getPdbCodeList().setItems(
                         FXCollections.observableArrayList(
-                                PDBUrl.getPDBEntries(controller.getEntryField().getText())))
+                                PDBWeb.getPDBEntries(controller.getEntryField().getText())))
         );
 
         // Menu item Listeners

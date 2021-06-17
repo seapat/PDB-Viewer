@@ -3,8 +3,6 @@ package CoV2StructureExplorer.model;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 
 public class PDBFile {
@@ -24,7 +22,7 @@ public class PDBFile {
         this.pdbID = pdbID;
 
         //FIXME: this method is protected instead of private to allow access from here, good idea?
-        this.content = PDBUrl.getPDBString(this.pdbID);
+        this.content = PDBWeb.getPDBString(this.pdbID);
 
         this.structure = new PDBParser(pdbID, this.content).getStructure();
     }

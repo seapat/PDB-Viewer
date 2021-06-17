@@ -12,13 +12,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PDBUrl {
+public class PDBWeb {
     /*
     Class that handles communication with rcsb.org, preferably everything is static/only exists once
      */
 
     // No instances allowed / needed
-    private PDBUrl(){}
+    private PDBWeb(){}
 
     private static final ArrayList<String> pdbEntries = fillEntryList();
     private static ArrayList<String> fillEntryList() {
@@ -89,7 +89,7 @@ public class PDBUrl {
         try {
             var code = pdbID.toLowerCase();
             var url = new URL("https://files.rcsb.org/download/" + code + ".pdb"); //"https://data.rcsb.org/rest/v1/core/polymer_entity/"+ code + "/1"
-            return new String(PDBUrl.getFromURL(url).readAllBytes());
+            return new String(PDBWeb.getFromURL(url).readAllBytes());
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Program requires valid pdb code found at rcsb.org");
