@@ -115,55 +115,52 @@ public class WindowPresenter {
 
         // TODO: adjust range of radiusScale slider
         var figure = new BallsOnly(model.getProtein(), controller.getRadiusScale().valueProperty());
+        var maxX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).max(Double::compare).orElse(0d);
+        var maxY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).max(Double::compare).orElse(0d);
+        var minX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).min(Double::compare).orElse(0d);
+        var minY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).min(Double::compare).orElse(0d);
+        var minZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).min(Double::compare).orElse(0d);
+        var maxZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).max(Double::compare).orElse(0d);
 
+        var avgX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);
+        var avgY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);
+        var avgZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);
 
-        // camera TODO: center to molecule
+        // camera
         var camera = new PerspectiveCamera(true);
-        camera.setFarClip(1000000); // TODO: set this value dynamically? maxZ for example?
+        camera.setFarClip(100000);
         camera.setNearClip(0.1);
-
-
-        //FIXME: center camera on molecule somehow
-        var maxX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).max(Double::compare).get();
-        var maxY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).max(Double::compare).get();
-        var minX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).min(Double::compare).get();
-        var minY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).min(Double::compare).get();
-
         camera.setTranslateX((maxX + minX) / 2);
         camera.setTranslateY((maxY + minY) / 2);
-
-        var minZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).min(Double::compare).get();
-        var maxZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).max(Double::compare).get();
         camera.setTranslateZ( Math.abs(minZ) * -2 - 1000);
 
 //        var rotateDummy = new Sphere(300 );
-////        rotateDummy.setVisible(false);
-//        rotateDummy.setTranslateX((maxX + minX) / 2 + rotateDummy.getRadius());
-//        rotateDummy.setTranslateY((maxY + minY) / 2 + rotateDummy.getRadius());
-////        rotateDummy.setTranslateZ((maxZ + minZ) / 2);
+//        rotateDummy.setVisible(false);
+//        rotateDummy.setTranslateX((maxX + minX) / 2 );
+//        rotateDummy.setTranslateY((maxY + minY) / 2 );
+//        rotateDummy.setTranslateZ((maxZ + minZ) / 2);
 //        figure.getChildren().add(0, rotateDummy);
 
-        var subScene = new SubScene(figure, 600, 600, true, SceneAntialiasing.BALANCED);
-        subScene.widthProperty().bind(controller.getCenterPane().widthProperty());
-        subScene.heightProperty().bind(controller.getCenterPane().heightProperty());
-        subScene.setCamera(camera);
+
 
         controller.getCenterPane().setOnScroll((ScrollEvent event) -> {
             var curr = camera.getTranslateZ();
-            camera.setTranslateZ(curr + (event.getDeltaY() * (Math.abs(minZ) * 0.01))); //FIXME: trying to scale zoomspeed to figure size
+            camera.setTranslateZ(curr + (event.getDeltaY() * 2)); //FIXME: try to scale zoomspeed to figure size
         });
 
+
+        Property<Transform> figureTransformProperty = new SimpleObjectProperty<>(new Rotate());
+        figureTransformProperty.addListener((v, o, n) -> figure.getTransforms().setAll(n));
+        MouseInteraction.installRotate(controller.getCenterPane(), camera,figure , figureTransformProperty);
 
         // separate method in order to keep camera persistent
 //        drawBalls(figure, subScene, controller);
 //        drawSticks(figure, subScene, controller, model);
 
-
-        Property<Transform> figureTransformProperty = new SimpleObjectProperty<>(new Rotate());
-        figureTransformProperty.addListener((v, o, n) -> figure.getTransforms().setAll(n));
-        MouseInteraction.installRotate(controller.getCenterPane(), camera, figureTransformProperty);
-
-
+        var subScene = new SubScene(figure, 600, 600, true, SceneAntialiasing.BALANCED);
+        subScene.widthProperty().bind(controller.getCenterPane().widthProperty());
+        subScene.heightProperty().bind(controller.getCenterPane().heightProperty());
+        subScene.setCamera(camera);
         controller.getCenterPane().getChildren().add(subScene);
 
     }

@@ -69,8 +69,6 @@ public class BallsOnly extends Group {
                     sphere.setMaterial(new PhongMaterial(color));
                     sphere.radiusProperty().bind(radiusScale.multiply(radius));
                     getChildren().add(sphere);
-
-
                 }
             }
         }
