@@ -1,9 +1,10 @@
 package CoV2StructureExplorer.model;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 
 public class PDBFile {
@@ -28,7 +29,7 @@ public class PDBFile {
         this.structure = new PDBParser(pdbID, this.content).getStructure();
     }
 
-    // load l ocally
+    // load locally
     public PDBFile(Path path) {
         String filename = path.getFileName().toString();
         this.pdbID = filename.substring(0, filename.lastIndexOf('.'));
@@ -40,11 +41,11 @@ public class PDBFile {
 
     private static String getPDBString(Path path) {
         try {
-            return Files.readString(path);
+            return Files.readString(path); //Files.newInputStream(path); //
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("File not found at " + path);
-            return "";
+            return "";//InputStream.nullInputStream();
         }
     }
 
@@ -53,7 +54,7 @@ public class PDBFile {
     // FIXME: use this.content and have one less arguments to hand over?
     public void savePDBFile(Path path) {
         try {
-            Files.writeString(Paths.get(path.toString(), this.pdbID + ".pdb" ), this.content);
+            Files.copy((InputStream) this.content.lines(), path);
         } catch (IOException e) {
 
             e.printStackTrace();
@@ -64,7 +65,7 @@ public class PDBFile {
         return pdbID;
     }
 
-    public String getContent() {
+    public  String getContent() {
         return content;
     }
 

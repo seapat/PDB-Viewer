@@ -1,8 +1,6 @@
 package CoV2StructureExplorer.model;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
@@ -22,13 +20,39 @@ public class PDBParser {
     This Class (and all corresponding ones) try to mimic this architecture.
     */
 
-    //TODO: perhaps make this static? see pdbURL on how to create structure without instantiation
+    /*TODO: perhaps make this static? see pdbURL on how to create structure without instantiation
+
+        // private constructor
+        private PDBParserStatic() {}
+
+        // start of new method, replaces current constructor
+        public static Structure createStructure(String pdbID, String pdbFileContent) {
+
+            // better safe than sorry
+            reader = null;
+            currLine = null;
+
+            var structure = new Structure(pdbID);
+            ...
+     */
+
+    // TODO: add residues, chain etc. to class scope to be able to change them from other methods
+    //  (e.g. add stats (count, avg ...) or add coord of CA/midpoint to residues
+
+    //TODO: next to progressLine() method: method to count atoms etc for statistics MAYBE USE MASTER RECORD
+
+    // TODO: maintain flat list of atoms
+
+    // TODO: bond if distance below x
+
+    // TODO: what to do with SCALE RECORDS?? Multiply with each coordinate: pull SCALE1 as x, SCALE2 as y, SCALE3 as z
+    // TODO: MIGHT NOT BE NEEDED! Probably used to get back to the experimental coords
 
     private final Structure structure;
     private BufferedReader reader;
     private String currLine;
 
-    PDBParser(String pdbID,String pdbFile) {
+    PDBParser(String pdbID, String pdbFile) {
 
         structure = new Structure(pdbID);
 
@@ -45,12 +69,10 @@ public class PDBParser {
                 }
                 progressLine();
             }
-
             reader.close();
         } catch (Exception e) {
             System.err.println("Error: Target File Cannot Be Read");
         }
-
     }
 
     private Model parseModel(Structure structure) {
@@ -58,12 +80,12 @@ public class PDBParser {
 
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
-            if (currLine.startsWith("ENDMDL")) {
+            if (currLine.startsWith("ENDMDL") ) { // || currLine.!startsWith("ATOM")
                 return model;
             }
             if (currLine.startsWith("ATOM")) {
                 model.add(
-                        parseChain()
+                        parseChain(model)
                 );
             }
             progressLine();
@@ -71,8 +93,8 @@ public class PDBParser {
         return model;
     }
 
-    private Chain parseChain() {
-        var chain = new Chain(currLine.charAt(21));
+    private Chain parseChain(Model model) {
+        var chain = new Chain(currLine.charAt(21), model);
 
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
@@ -91,12 +113,9 @@ public class PDBParser {
         return chain;
     }
 
-
-
     private Residue parseResidue(Chain chain) {
 
-
-        int resID = parseInt(currLine.substring(23, 27).strip());
+        int resID = parseInt(currLine.substring(22, 26).strip());
         String resType = currLine.substring(17, 20).strip();
         var residue = new Residue(resID, resType, chain);
 
@@ -107,13 +126,14 @@ public class PDBParser {
                 return residue;
             }else {
                 resType = currLine.substring(17,20).strip();
-
             }
 
             if (currLine.startsWith("ATOM")) {
-                String atomType = currLine.substring(12, 16).strip();
+                String atomID = currLine.substring(12, 16).strip();
+                char simpleType = currLine.charAt(77); //TODO: add to atom for colorisation
                 int id = parseInt(currLine.substring(6, 11).strip());
                 char chainID = currLine.charAt(21);
+
 
                 var position = new Atom.Position(
                         parseDouble(currLine.substring(30, 38)),
@@ -121,9 +141,8 @@ public class PDBParser {
                         parseDouble(currLine.substring(46, 55))
                 );
 
-                residue.add(new Atom(id,atomType,chainID, residue, position));
+                residue.add(new Atom(id,atomID, simpleType,chainID, residue, position));
             }
-
             progressLine();
         }
         return residue;
