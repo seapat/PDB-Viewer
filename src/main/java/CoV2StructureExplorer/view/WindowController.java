@@ -2,8 +2,18 @@ package CoV2StructureExplorer.view;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.Pane;
 
 public class WindowController {
+
+    @FXML
+    private Slider radiusScale;
+
+    @FXML
+    private Label infoLabel;
+
+    @FXML
+    private Pane centerPane;
 
     @FXML
     private ListView<String> pdbCodeList;
@@ -102,5 +112,29 @@ public class WindowController {
 
     public void setPdbText(ListView<String> pdbText) {
         this.pdbText = pdbText;
+    }
+
+    public Label getInfoLabel() {
+        return infoLabel;
+    }
+
+    public void setInfoLabel(Label infoLabel) {
+        this.infoLabel = infoLabel;
+    }
+
+    public Pane getCenterPane() {
+        return centerPane;
+    }
+
+    public void setCenterPane(Pane centerPane) {
+        this.centerPane = centerPane;
+    }
+
+    public Slider getRadiusScale() {
+        return radiusScale;
+    }
+
+    public void setRadiusScale(Slider radiusScale) {
+        this.radiusScale = radiusScale;
     }
 }

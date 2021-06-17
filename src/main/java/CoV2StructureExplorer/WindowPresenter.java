@@ -5,19 +5,24 @@ import CoV2StructureExplorer.model.PDBUrl;
 import CoV2StructureExplorer.view.BallsOnly;
 import CoV2StructureExplorer.view.MouseInteraction;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.geometry.Point3D;
+import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
+import javafx.scene.transform.Translate;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -109,44 +114,55 @@ public class WindowPresenter {
     private static void setupMoleculeVisualization(WindowController controller) {
 
         // TODO: adjust range of radiusScale slider
-        var figure = new BallsOnly(model.getProtein(), controller.getRadiusScale().valueProperty(), 1);
-        var subScene = new SubScene(figure, 600, 600, true, SceneAntialiasing.BALANCED);
-        subScene.widthProperty().bind(controller.getCenterPane().widthProperty());
-        subScene.heightProperty().bind(controller.getCenterPane().heightProperty());
+        var figure = new BallsOnly(model.getProtein(), controller.getRadiusScale().valueProperty());
+
 
         // camera TODO: center to molecule
         var camera = new PerspectiveCamera(true);
         camera.setFarClip(1000000); // TODO: set this value dynamically? maxZ for example?
         camera.setNearClip(0.1);
-        /*         var cameraCenter = new Point3D(0,0,0);
-        for (int i = 0; i < model.getNumberOfAtoms(); i++){
 
-            if (model.getAtom(i ).getClass() != Hydrogen.class) {
-                cameraCenter = model.getLocation(i).midpoint(cameraCenter);
-            }
-        }
-//        get midpoint of all atoms that are not hydrogen
-//        camera.setRotationAxis(cameraCenter);
-        camera.setTranslateZ(-1000);
+
+        //FIXME: center camera on molecule somehow
+        var maxX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).max(Double::compare).get();
+        var maxY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).max(Double::compare).get();
+        var minX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).min(Double::compare).get();
+        var minY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).min(Double::compare).get();
+
+        camera.setTranslateX((maxX + minX) / 2);
+        camera.setTranslateY((maxY + minY) / 2);
+
+        var minZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).min(Double::compare).get();
+        var maxZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).max(Double::compare).get();
+        camera.setTranslateZ( Math.abs(minZ) * -2 - 1000);
+
+//        var rotateDummy = new Sphere(300 );
+////        rotateDummy.setVisible(false);
+//        rotateDummy.setTranslateX((maxX + minX) / 2 + rotateDummy.getRadius());
+//        rotateDummy.setTranslateY((maxY + minY) / 2 + rotateDummy.getRadius());
+////        rotateDummy.setTranslateZ((maxZ + minZ) / 2);
+//        figure.getChildren().add(0, rotateDummy);
+
+        var subScene = new SubScene(figure, 600, 600, true, SceneAntialiasing.BALANCED);
+        subScene.widthProperty().bind(controller.getCenterPane().widthProperty());
+        subScene.heightProperty().bind(controller.getCenterPane().heightProperty());
         subScene.setCamera(camera);
-         */
+
+        controller.getCenterPane().setOnScroll((ScrollEvent event) -> {
+            var curr = camera.getTranslateZ();
+            camera.setTranslateZ(curr + (event.getDeltaY() * (Math.abs(minZ) * 0.01))); //FIXME: trying to scale zoomspeed to figure size
+        });
+
 
         // separate method in order to keep camera persistent
 //        drawBalls(figure, subScene, controller);
 //        drawSticks(figure, subScene, controller, model);
 
 
-        // Dragging
         Property<Transform> figureTransformProperty = new SimpleObjectProperty<>(new Rotate());
         figureTransformProperty.addListener((v, o, n) -> figure.getTransforms().setAll(n));
-        MouseInteraction.installRotate(controller.getCenterPane(), subScene, figureTransformProperty);
+        MouseInteraction.installRotate(controller.getCenterPane(), camera, figureTransformProperty);
 
-
-        // FIXME: does not work atm
-        controller.getCenterPane().setOnScroll((ScrollEvent event) -> {
-            var curr = camera.getTranslateZ();
-            camera.setTranslateZ(curr + event.getDeltaY());
-        });
 
         controller.getCenterPane().getChildren().add(subScene);
 
@@ -199,16 +215,16 @@ public class WindowPresenter {
         controller.getPdbText().getItems().clear();
 
         // TODO: clear visualisation
-//        controller.getTreePane().getChildren().clear();
-//        CoV2StructureExplore.CoV2StructureExplorer.model.setRoot("");
+        controller.getCenterPane().getChildren().clear();
     }
 
+    // FIXME: feither this or WritePDB
     private static class pdbTextTask extends Task<ArrayList<String>> {
         @Override
         public ArrayList<String> call() throws IOException {
-            var reader = new BufferedReader(new StringReader(model.getContent()));
 
-            long size = reader.lines().count(); // model.getContent().lines().split("\r\n|\r|\n").length;
+            var reader = new BufferedReader(new StringReader(model.getContent()));
+            long size = model.getContent().lines().count();//reader.lines().count(); // model.getContent().lines().split("\r\n|\r|\n").length;
             long count = 0;
             ArrayList<String> lines = new ArrayList<>();
 
@@ -224,8 +240,11 @@ public class WindowPresenter {
             }
             reader.close();
 
-
 //            Scanner scanner = new Scanner(model.getContent());
+//            long size =  model.getContent().lines().count(); //.split("\r\n|\r|\n").length;
+//            long count = 0;
+//            ArrayList<String> lines = new ArrayList<>();
+//
 //            while (scanner.hasNextLine()) {
 //                String line = scanner.nextLine();
 //                lines.add(line);
@@ -234,10 +253,10 @@ public class WindowPresenter {
 //                 updateProgress(count/size, size);
 //            }
 //            scanner.close();
+
             return lines;
         }
     }
-
 
     private static void writePDB(WindowController controller, PDBFile model){
 
@@ -256,12 +275,7 @@ public class WindowPresenter {
         long count = 0;
         ObservableList<String> lines = FXCollections.observableArrayList();
 
-
-
-
-
         Scanner scanner = new Scanner(model.getContent());
-
 
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
