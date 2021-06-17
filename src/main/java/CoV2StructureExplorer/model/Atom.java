@@ -5,30 +5,33 @@ public class Atom {
     private static Integer globalID = 0;
 
     private final Integer id;
-    private final String type;
+    private final String complexType;
+    private final char simpleType;
     private final Residue residue;
     private final char chain;
     private final Position position;
 
-    Atom(int id, String atomType, char chain, Residue residue, Position position) {
+    Atom(int id, String complexType, char simpleType, char chain, Residue residue, Position position) {
         this.id = id;
         this.residue = residue;
-        this.type = atomType;
+        this.complexType = complexType;
+        this.simpleType = simpleType;
         this.chain = chain;
         this.position = position;
     }
 
     // incrementing id automatically should work, parsing it still feels 'safer'
-    Atom(String atomType, char chain, Residue residue, Position position) {
+    Atom(String complexType, char simpleType, char chain, Residue residue, Position position) {
         this.id = ++globalID;
         this.residue = residue;
-        this.type = atomType;
+        this.complexType = complexType;
+        this.simpleType = simpleType;
         this.chain = chain;
         this.position = position;
     }
 
     public String getType() {
-        return type;
+        return complexType;
     }
 
     public Residue getResidue() {
@@ -45,6 +48,10 @@ public class Atom {
 
     public int getId() {
         return id;
+    }
+
+    public char getSimpleType() {
+        return simpleType;
     }
 
     // TODO: implement me
