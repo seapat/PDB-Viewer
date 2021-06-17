@@ -2,65 +2,90 @@ package CoV2StructureExplorer;
 
 import CoV2StructureExplorer.model.PDBFile;
 import CoV2StructureExplorer.model.PDBUrl;
-import javafx.beans.binding.Bindings;
+import CoV2StructureExplorer.view.BallsOnly;
+import CoV2StructureExplorer.view.MouseInteraction;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
+import javafx.scene.PerspectiveCamera;
+import javafx.scene.SceneAntialiasing;
+import javafx.scene.SubScene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Transform;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import CoV2StructureExplorer.view.WindowController;
 
-import java.io.File;
+import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class WindowPresenter {
 
-
-    /*
-    TODO: make stage and controller instance variables and update all related methods
-     Could alternatively create static version with variables for stage, controller, model and
-     methods that are called on variable creation (see PDBURL)
-     */
-
+    private WindowPresenter() {}
 
     // non-static allows easy reassignment of model
-    private PDBFile model;
-    WindowPresenter(Stage stage, WindowController controller){ //, PDBFile model
+    private static PDBFile model;
+    static void setup(Stage stage, WindowController controller){ //, PDBFile model
+
+        var service = new Service<ArrayList<String>>() {
+            @Override
+            protected Task<ArrayList<String>> createTask() {
+                return new pdbTextTask();
+            }
+        };
+        service.setOnScheduled( v ->
+            clearAll(controller, model)
+        );
+        service.setOnSucceeded(v -> {
+            controller.getPdbText().setItems(FXCollections.observableArrayList(service.getValue()));
+            controller.getPdbText().scrollTo(0);
+            setupMoleculeVisualization(controller);
+        });
 
 
         // Button Listeners
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
         controller.getParseButton().disableProperty().bind(
-                Bindings.or(
-                        //TODO: disable button if already parsing (concurrency)
-                        controller.getEntryField().textProperty().length().isEqualTo(4),
-                        controller.getPdbCodeList().focusedProperty())
+                // TODO: check if parse button is disabled correctly when service is running
+                service.runningProperty().or(
+                        controller.getEntryField().textProperty().length().isEqualTo(4).or(
+                                controller.getPdbCodeList().focusedProperty()))
                         .not()
         );
         controller.getParseButton().setOnAction(e -> {
             var selection = controller.getPdbCodeList().getSelectionModel().getSelectedItem();
             var enteredQuery = controller.getEntryField().getText();
             String pdbCode;
-            if (enteredQuery.length() != 4) {
+            if (enteredQuery.length() != 4 && controller.getPdbCodeList().isFocused()) {
                 pdbCode = selection;
             } else {
                 pdbCode = enteredQuery;
             }
 
-            clearAll(controller, model);
-            this.model = new PDBFile(pdbCode);
-            writePDB(controller, model);
-            controller.getPdbText().scrollTo(0);
+//            clearAll(controller, model);
+            model = new PDBFile(pdbCode);
+//            writePDB(controller, model);
+            service.restart();
+
         });
 
         // get default value for List of pdb codes
-        controller.getPdbCodeList().setItems(PDBUrl.getPDBEntries(controller.getEntryField().getText()));
+        controller.getPdbCodeList().setItems(
+                FXCollections.observableArrayList(
+                        PDBUrl.getPDBEntries(controller.getEntryField().getText())));
         controller.getEntryField().textProperty().addListener(e ->
                 controller.getPdbCodeList().setItems(
-                        PDBUrl.getPDBEntries(controller.getEntryField().getText()))
+                        FXCollections.observableArrayList(
+                                PDBUrl.getPDBEntries(controller.getEntryField().getText())))
         );
 
         // Menu item Listeners
@@ -78,6 +103,53 @@ public class WindowPresenter {
         controller.getOpenMenu().setOnAction(e -> openPDB(stage,controller,model));
         controller.getClearMenu().setOnAction(e -> clearAll(controller,model));
         controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
+    }
+
+
+    private static void setupMoleculeVisualization(WindowController controller) {
+
+        // TODO: adjust range of radiusScale slider
+        var figure = new BallsOnly(model.getProtein(), controller.getRadiusScale().valueProperty(), 1);
+        var subScene = new SubScene(figure, 600, 600, true, SceneAntialiasing.BALANCED);
+        subScene.widthProperty().bind(controller.getCenterPane().widthProperty());
+        subScene.heightProperty().bind(controller.getCenterPane().heightProperty());
+
+        // camera TODO: center to molecule
+        var camera = new PerspectiveCamera(true);
+        camera.setFarClip(1000000); // TODO: set this value dynamically? maxZ for example?
+        camera.setNearClip(0.1);
+        /*         var cameraCenter = new Point3D(0,0,0);
+        for (int i = 0; i < model.getNumberOfAtoms(); i++){
+
+            if (model.getAtom(i ).getClass() != Hydrogen.class) {
+                cameraCenter = model.getLocation(i).midpoint(cameraCenter);
+            }
+        }
+//        get midpoint of all atoms that are not hydrogen
+//        camera.setRotationAxis(cameraCenter);
+        camera.setTranslateZ(-1000);
+        subScene.setCamera(camera);
+         */
+
+        // separate method in order to keep camera persistent
+//        drawBalls(figure, subScene, controller);
+//        drawSticks(figure, subScene, controller, model);
+
+
+        // Dragging
+        Property<Transform> figureTransformProperty = new SimpleObjectProperty<>(new Rotate());
+        figureTransformProperty.addListener((v, o, n) -> figure.getTransforms().setAll(n));
+        MouseInteraction.installRotate(controller.getCenterPane(), subScene, figureTransformProperty);
+
+
+        // FIXME: does not work atm
+        controller.getCenterPane().setOnScroll((ScrollEvent event) -> {
+            var curr = camera.getTranslateZ();
+            camera.setTranslateZ(curr + event.getDeltaY());
+        });
+
+        controller.getCenterPane().getChildren().add(subScene);
+
     }
 
 
@@ -118,7 +190,7 @@ public class WindowPresenter {
         if (selectedFile != null) {
             clearAll(controller, model);
             model = new PDBFile(Path.of(selectedFile.getPath())); //Files.readString(Path.of(selectedFile.getPath()));
-            writePDB(controller, model);
+            writePDB(controller, model); //TODO: call service here
         }
     }
 
@@ -131,7 +203,44 @@ public class WindowPresenter {
 //        CoV2StructureExplore.CoV2StructureExplorer.model.setRoot("");
     }
 
+    private static class pdbTextTask extends Task<ArrayList<String>> {
+        @Override
+        public ArrayList<String> call() throws IOException {
+            var reader = new BufferedReader(new StringReader(model.getContent()));
+
+            long size = reader.lines().count(); // model.getContent().lines().split("\r\n|\r|\n").length;
+            long count = 0;
+            ArrayList<String> lines = new ArrayList<>();
+
+            var currLine = reader.readLine();
+            while ( currLine != null && currLine.trim().length() > 0 ) {
+
+                lines.add(currLine);
+                count++;
+                if (isCancelled()) return null;
+                updateProgress(count/size, size);
+
+                currLine = reader.readLine();
+            }
+            reader.close();
+
+
+//            Scanner scanner = new Scanner(model.getContent());
+//            while (scanner.hasNextLine()) {
+//                String line = scanner.nextLine();
+//                lines.add(line);
+//                count++;
+//                if (isCancelled()) return null;
+//                 updateProgress(count/size, size);
+//            }
+//            scanner.close();
+            return lines;
+        }
+    }
+
+
     private static void writePDB(WindowController controller, PDBFile model){
+
         //TODO: better way? this hangs for long pdb files (eg '6ZP5')
         //TODO: monospace currently defined in fxml, move to css once created
             /*
@@ -140,12 +249,28 @@ public class WindowPresenter {
                 -fx-font-family: "monospace";
             }
              */
+
+        var reader = new BufferedReader(new StringReader(model.getContent()));
+
+        long size = reader.lines().count(); // model.getContent().lines().split("\r\n|\r|\n").length;
+        long count = 0;
         ObservableList<String> lines = FXCollections.observableArrayList();
+
+
+
+
+
         Scanner scanner = new Scanner(model.getContent());
+
+
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             lines.add(line);
             controller.getPdbText().getItems().add(line);
+            count++;
+            //if (isCancelled()) return null;
+
+            // updateProgress(count/size, size)
         }
         scanner.close();
     }
