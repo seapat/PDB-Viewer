@@ -1,8 +1,5 @@
 package CoV2StructureExplorer.model;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-
 import javax.json.Json;
 import javax.json.JsonValue;
 import java.io.ByteArrayInputStream;
@@ -13,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 
 public class PDBUrl {
     /*
@@ -22,8 +20,8 @@ public class PDBUrl {
     // No instances allowed / needed
     private PDBUrl(){}
 
-    private static final ArrayList<String> pdbEntries = fillEntries();
-    private static ArrayList<String> fillEntries() {
+    private static final ArrayList<String> pdbEntries = fillEntryList();
+    private static ArrayList<String> fillEntryList() {
         try {
             var url = new URL("https://data.rcsb.org/rest/v1/holdings/current/entry_ids");
             var reader = Json.createReader(getFromURL(url));
@@ -64,16 +62,14 @@ public class PDBUrl {
     }
 
     // use to populate pdbCodeList based on content of entryField
-    // FIXME: this shouldn't use javafx classes here
-    public static ObservableList<String> getPDBEntries(String query) {
+    public static ArrayList<String> getPDBEntries(String query) {
 
         if (query.isEmpty()) {
             // Corona-related pdb codes if selection is empty, If you just want to see any file, these are enough
             // You don't want to scroll through all codes if you are "just testing", else you have a code at hand
-            return FXCollections.observableArrayList(
-                    "6ZMO", "6ZOJ", "6ZPE", "6ZP5", "6ZP4", "6ZP7", "6ZOX", "6ZOW", "6ZOZ", "6ZOY", "6ZOK", "6ZON",
-                    "6ZP1", "6ZP0", "6ZP2", "5R84", "5R83", "5R7Y", "5R80", "5R82", "5R81", "5R8T", "5R7Z", "5REA", "5REC"
-            );
+            return new ArrayList<>(
+                    List.of("6ZMO", "6ZOJ", "6ZPE", "6ZP5", "6ZP4", "6ZP7", "6ZOX", "6ZOW", "6ZOZ", "6ZOY", "6ZOK", "6ZON",
+                    "6ZP1", "6ZP0", "6ZP2", "5R84", "5R83", "5R7Y", "5R80", "5R82", "5R81", "5R8T", "5R7Z", "5REA", "5REC"));
         }
         try {
             var hits = pdbEntries.stream().filter(s -> ((String)s).startsWith(query.toUpperCase())).toList();
@@ -82,10 +78,10 @@ public class PDBUrl {
                     add("Nothing Found");
                 }};
             }
-            return FXCollections.observableArrayList(hits);
+            return new ArrayList<>(hits);
         } catch (Exception e) {
             e.printStackTrace();
-            return FXCollections.observableArrayList("Error", e.toString());
+            return new ArrayList<>(List.of("Error", e.toString()));
         }
     }
 
@@ -100,6 +96,8 @@ public class PDBUrl {
             return "";
         }
     }
+
+
 
 
     public static ArrayList<String> getPDBEntries() {
