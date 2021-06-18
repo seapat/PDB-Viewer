@@ -2,7 +2,6 @@ package CoV2StructureExplorer.model;
 
 public class Atom {
 
-    private static Integer globalID = 0;
 
     private final Integer id;
     private final String complexType;
@@ -20,15 +19,6 @@ public class Atom {
         this.position = position;
     }
 
-    // incrementing id automatically should work, parsing it still feels 'safer'
-    Atom(String complexType, char simpleType, char chain, Residue residue, Position position) {
-        this.id = ++globalID;
-        this.residue = residue;
-        this.complexType = complexType;
-        this.simpleType = simpleType;
-        this.chain = chain;
-        this.position = position;
-    }
 
     public String getType() {
         return complexType;

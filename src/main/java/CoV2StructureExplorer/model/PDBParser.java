@@ -55,6 +55,7 @@ public class PDBParser {
     PDBParser(String pdbID, String pdbFile) {
 
         structure = new Structure(pdbID);
+        int modelID = 0;
 
         try {
             reader = new BufferedReader(new StringReader(pdbFile));
@@ -63,7 +64,7 @@ public class PDBParser {
 
             while ( currLine != null && currLine.trim().length() > 0 ) {
                 if (currLine.startsWith("ATOM")) {
-                    structure.add(parseModel(structure));
+                    structure.add(parseModel(structure, modelID++));
                 }
                 progressLine();
             }
@@ -73,8 +74,10 @@ public class PDBParser {
         }
     }
 
-    private Model parseModel(Structure structure) {
-        var model = new Model(structure);
+    private Model parseModel(Structure structure, int modelID) {
+
+
+        var model = new Model(structure, modelID);
 
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
