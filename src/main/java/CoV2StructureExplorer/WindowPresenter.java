@@ -3,21 +3,15 @@ package CoV2StructureExplorer;
 import CoV2StructureExplorer.model.PDBFile;
 import CoV2StructureExplorer.model.PDBWeb;
 import CoV2StructureExplorer.view.BallsOnly;
-import CoV2StructureExplorer.view.MouseInteraction;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
+import CoV2StructureExplorer.view.Visualization;
+import javafx.beans.binding.IntegerBinding;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.scene.PerspectiveCamera;
-import javafx.scene.SceneAntialiasing;
-import javafx.scene.SubScene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.transform.Rotate;
-import javafx.scene.transform.Transform;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -36,6 +30,15 @@ public class WindowPresenter {
     private static PDBFile model;
     static void setup(Stage stage, WindowController controller){ //, PDBFile model
 
+        controller.getViewChoice().getItems().addAll("Spheres", "Spheres + Ribbon", "Ribbon", "Pseudo-Cartoon");
+        controller.getViewChoice().setValue("Spheres");
+
+        var sizeModelChoiceSize = new SimpleIntegerProperty(controller.getModelChoice().getItems().size());
+//        controller.getModelChoice().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
+//        controller.getModelLabel().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
+//        controller.getModelChoice().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
+//        controller.getModelLabel().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
+
         var service = new Service<ArrayList<String>>() {
             @Override
             protected Task<ArrayList<String>> createTask() {
@@ -48,9 +51,13 @@ public class WindowPresenter {
         service.setOnSucceeded(v -> {
             controller.getPdbText().setItems(FXCollections.observableArrayList(service.getValue()));
             controller.getPdbText().scrollTo(0);
-            setupMoleculeVisualization(controller);
         });
 
+        controller.getDrawButton().setOnAction(e-> {
+            controller.getPdbText().getItems().clear();
+            controller.getCenterPane().getChildren().clear();
+            Visualization.setupMoleculeVisualization(controller, model);
+        });
 
         // Button Listeners
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
@@ -58,25 +65,34 @@ public class WindowPresenter {
                 // TODO: check if parse button is disabled correctly when service is running
                 service.runningProperty().or(
                         controller.getEntryField().textProperty().length().isEqualTo(4).or(
-                                controller.getPdbCodeList().focusedProperty()))
+                                controller.getPdbCodeList().getSelectionModel().selectedItemProperty().isNotNull()))
                         .not()
         );
         controller.getParseButton().setOnAction(e -> {
             var selection = controller.getPdbCodeList().getSelectionModel().getSelectedItem();
             var enteredQuery = controller.getEntryField().getText();
             String pdbCode;
-            if (enteredQuery.length() != 4 && controller.getPdbCodeList().isFocused()) {
-                pdbCode = selection;
-            } else {
+            if (enteredQuery.length() == 4 ) {
                 pdbCode = enteredQuery;
+            } else {
+                pdbCode = selection;
             }
 
 //            clearAll(controller, model);
             model = new PDBFile(pdbCode);
+
+            // populate model choice
+            controller.getModelChoice().getItems().clear();
+            for (var item : model.getProtein()){
+                controller.getModelChoice().getItems().add(item.getId());
+            }
+            controller.getModelChoice().setValue(controller.getModelChoice().getItems().get(0));
+
 //            writePDB(controller, model);
             service.restart();
-
         });
+        controller.getClearSearchButton().disableProperty().bind(controller.getEntryField().textProperty().isEmpty());
+        controller.getClearSearchButton().setOnAction(e -> controller.getEntryField().clear());
 
         // get default value for List of pdb codes
         controller.getPdbCodeList().setItems(
@@ -106,59 +122,7 @@ public class WindowPresenter {
     }
 
 
-    private static void setupMoleculeVisualization(WindowController controller) {
 
-        // TODO: adjust range of radiusScale slider
-        var figure = new BallsOnly(model.getProtein(), controller.getRadiusScale().valueProperty());
-        var maxX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).max(Double::compare).orElse(0d);
-        var maxY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).max(Double::compare).orElse(0d);
-        var minX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).min(Double::compare).orElse(0d);
-        var minY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).min(Double::compare).orElse(0d);
-        var minZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).min(Double::compare).orElse(0d);
-        var maxZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).max(Double::compare).orElse(0d);
-
-        var avgX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);
-        var avgY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);
-        var avgZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);
-
-        // camera
-        var camera = new PerspectiveCamera(true);
-        camera.setFarClip(100000);
-        camera.setNearClip(0.1);
-        camera.setTranslateX((maxX + minX) / 2);
-        camera.setTranslateY((maxY + minY) / 2);
-        camera.setTranslateZ( Math.abs(minZ) * -2 - 1000);
-
-//        var rotateDummy = new Sphere(300 );
-//        rotateDummy.setVisible(false);
-//        rotateDummy.setTranslateX((maxX + minX) / 2 );
-//        rotateDummy.setTranslateY((maxY + minY) / 2 );
-//        rotateDummy.setTranslateZ((maxZ + minZ) / 2);
-//        figure.getChildren().add(0, rotateDummy);
-
-
-
-        controller.getCenterPane().setOnScroll((ScrollEvent event) -> {
-            var curr = camera.getTranslateZ();
-            camera.setTranslateZ(curr + (event.getDeltaY() * 2)); //FIXME: try to scale zoomspeed to figure size
-        });
-
-
-        Property<Transform> figureTransformProperty = new SimpleObjectProperty<>(new Rotate());
-        figureTransformProperty.addListener((v, o, n) -> figure.getTransforms().setAll(n));
-        MouseInteraction.installRotate(controller.getCenterPane(), camera,figure , figureTransformProperty);
-
-        // separate method in order to keep camera persistent
-//        drawBalls(figure, subScene, controller);
-//        drawSticks(figure, subScene, controller, model);
-
-        var subScene = new SubScene(figure, 600, 600, true, SceneAntialiasing.BALANCED);
-        subScene.widthProperty().bind(controller.getCenterPane().widthProperty());
-        subScene.heightProperty().bind(controller.getCenterPane().heightProperty());
-        subScene.setCamera(camera);
-        controller.getCenterPane().getChildren().add(subScene);
-
-    }
 
 
     private static void savePDB(Stage stage, WindowController controller, PDBFile model){
@@ -210,7 +174,7 @@ public class WindowPresenter {
         controller.getCenterPane().getChildren().clear();
     }
 
-    // FIXME: feither this or WritePDB
+    // FIXME: either this or WritePDB
     private static class pdbTextTask extends Task<ArrayList<String>> {
         @Override
         public ArrayList<String> call() throws IOException {

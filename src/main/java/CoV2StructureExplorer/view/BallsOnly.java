@@ -9,21 +9,17 @@ import javafx.scene.shape.Sphere;
 
 public class BallsOnly extends Group {
 
-    // TODO: camera center / midpoint: get min & max of y,x,z (bounding box) then average
-    // TODO: alternatively get average of all coordinates
-    // nested strucutre: model -> chain -> atomtype
-
     //sphere.setdrawMode(DrawMode.LINE) to see mesh used for drawing
     // use constructor of sphere to reduce mesh-lines -> better performance sphere(x, y) x = radius, y = subdivisions
 
-    public BallsOnly(Structure pdb, ReadOnlyDoubleProperty radiusScale){
+    public BallsOnly(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice){
 
         final int opacity = 1;
         double max = 0;
         // TODO: add selection for model
-        int modelChoice = 0;
+//        int modelChoice = 0;
 
-        for (var chain: pdb.get(modelChoice)){
+        for (var chain: pdb.get(modelChoice -1 )){
             for (var residue: chain) {
                 for (var atom: residue) {
 
@@ -57,15 +53,19 @@ public class BallsOnly extends Group {
                             color = Color.GREEN.deriveColor(1,1,1, opacity);
                             radius = 310;
                         }
+                        case 'H' -> {
+                            color = Color.WHITE.deriveColor(1,1,1, opacity);
+                            radius = 50;
+                        }
                         default -> {
-                            color = Color.BROWN.deriveColor(1,1,1, opacity);
+                            color = Color.PLUM.deriveColor(1,1,1, opacity);
                             radius = 100;
                         }
                     }
 
-                    sphere.setTranslateX(10 * atom.getPosition().x());
-                    sphere.setTranslateY(10 * atom.getPosition().y());
-                    sphere.setTranslateZ(10 * atom.getPosition().z());
+                    sphere.setTranslateX(15 * atom.getPosition().x());
+                    sphere.setTranslateY(15 * atom.getPosition().y());
+                    sphere.setTranslateZ(15 * atom.getPosition().z());
                     sphere.setMaterial(new PhongMaterial(color));
                     sphere.radiusProperty().bind(radiusScale.multiply(radius));
                     getChildren().add(sphere);
