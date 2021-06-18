@@ -3,6 +3,7 @@ package CoV2StructureExplorer.model;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 
 public class PDBFile {
@@ -52,9 +53,8 @@ public class PDBFile {
     // FIXME: use this.content and have one less arguments to hand over?
     public void savePDBFile(Path path) {
         try {
-            Files.copy((InputStream) this.content.lines(), path);
+            Files.writeString( Paths.get( path.toString() ,this.pdbID + ".pdb"), this.content);
         } catch (IOException e) {
-
             e.printStackTrace();
         }
     }
