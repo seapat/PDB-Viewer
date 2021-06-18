@@ -236,9 +236,6 @@ public class WindowPresenter {
             lines.add(line);
             controller.getPdbText().getItems().add(line);
             count++;
-            //if (isCancelled()) return null;
-
-            // updateProgress(count/size, size)
         }
         scanner.close();
     }
