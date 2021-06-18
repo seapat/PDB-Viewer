@@ -63,9 +63,7 @@ public class PDBParser {
 
             while ( currLine != null && currLine.trim().length() > 0 ) {
                 if (currLine.startsWith("ATOM")) {
-                    structure.add(
-                            parseModel(structure)
-                    );
+                    structure.add(parseModel(structure));
                 }
                 progressLine();
             }
@@ -81,12 +79,12 @@ public class PDBParser {
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
             if (currLine.startsWith("ENDMDL") ) { // || currLine.!startsWith("ATOM")
+//                progressLine();
                 return model;
             }
+
             if (currLine.startsWith("ATOM")) {
-                model.add(
-                        parseChain(model)
-                );
+                model.add(parseChain(model));
             }
             progressLine();
         }
@@ -98,16 +96,16 @@ public class PDBParser {
 
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
-            if (currLine.startsWith("TER")) {
-                return chain;
+            if (currLine.startsWith("ATOM")) {
+                chain.add(parseResidue(chain));
+                //continue; //This line is IMPORTANT, we don't want to progress the line after adding a residue
+            } else {
+                progressLine();
             }
 
-            if (currLine.startsWith("ATOM")) {
-                chain.add(
-                        parseResidue(chain)
-                );
+            if (currLine.startsWith("TER")) { //currLine.startsWith("ENDMDL") ||
+                return chain;
             }
-            progressLine();
 
         }
         return chain;
@@ -122,15 +120,13 @@ public class PDBParser {
         // parse ATOM lines to Atom objects
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
-            if (!resType.equals(currLine.substring(17, 20).strip())) {
+            if (currLine.startsWith("TER") || !(resID == parseInt(currLine.substring(22, 26).strip()))) {
                 return residue;
-            }else {
-                resType = currLine.substring(17,20).strip();
             }
 
             if (currLine.startsWith("ATOM")) {
-                String atomID = currLine.substring(12, 16).strip();
-                char simpleType = currLine.charAt(77); //TODO: add to atom for colorisation
+                String complexType = currLine.substring(12, 16).strip();
+                char simpleType = currLine.charAt(77);
                 int id = parseInt(currLine.substring(6, 11).strip());
                 char chainID = currLine.charAt(21);
 
@@ -141,7 +137,7 @@ public class PDBParser {
                         parseDouble(currLine.substring(46, 55))
                 );
 
-                residue.add(new Atom(id,atomID, simpleType,chainID, residue, position));
+                residue.add(new Atom(id,complexType, simpleType,chainID, residue, position));
             }
             progressLine();
         }

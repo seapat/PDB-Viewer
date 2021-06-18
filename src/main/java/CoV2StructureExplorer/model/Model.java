@@ -4,7 +4,9 @@ import java.util.ArrayList;
 
 public class Model extends ArrayList<Chain> {
 
-    private int id = 0;
+    // TODO: Model id's start from 1, change here and verify that modelChoice still works correctly
+    private static int globalID = 0;
+    private int id;
     private final Structure structure;
 
     public int getId() {
@@ -16,7 +18,7 @@ public class Model extends ArrayList<Chain> {
     }
 
     public Model(Structure structure){
-        this.id = ++id;
+        this.id = ++globalID;
         this.structure = structure;
     }
 
