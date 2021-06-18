@@ -2,9 +2,7 @@ package CoV2StructureExplorer;
 
 import CoV2StructureExplorer.model.PDBFile;
 import CoV2StructureExplorer.model.PDBWeb;
-import CoV2StructureExplorer.view.BallsOnly;
 import CoV2StructureExplorer.view.Visualization;
-import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,15 +28,19 @@ public class WindowPresenter {
     private static PDBFile model;
     static void setup(Stage stage, WindowController controller){ //, PDBFile model
 
+        // set items to be displayed in choicebox for visualisation style
         controller.getViewChoice().getItems().addAll("Spheres", "Spheres + Ribbon", "Ribbon", "Pseudo-Cartoon");
         controller.getViewChoice().setValue("Spheres");
 
-        var sizeModelChoiceSize = new SimpleIntegerProperty(controller.getModelChoice().getItems().size());
-//        controller.getModelChoice().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
-//        controller.getModelLabel().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
-//        controller.getModelChoice().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
-//        controller.getModelLabel().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
+        // show/hide modelSelection in visualisation tab, SimpleIntegerProperty updated via parse button
+        var sizeModelChoiceSize = new SimpleIntegerProperty(controller.getModelChoice().getItems().size(), "sizeModelChoiceSize");
+        controller.getModelChoice().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
+        controller.getModelLabel().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
+        controller.getModelChoice().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
+        controller.getModelLabel().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
 
+
+        // service to parse pdb file in background
         var service = new Service<ArrayList<String>>() {
             @Override
             protected Task<ArrayList<String>> createTask() {
@@ -53,13 +55,13 @@ public class WindowPresenter {
             controller.getPdbText().scrollTo(0);
         });
 
+        // load new visualisation, clear only visualisation tab
         controller.getDrawButton().setOnAction(e-> {
-            controller.getPdbText().getItems().clear();
             controller.getCenterPane().getChildren().clear();
             Visualization.setupMoleculeVisualization(controller, model);
         });
 
-        // Button Listeners
+
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
         controller.getParseButton().disableProperty().bind(
                 // TODO: check if parse button is disabled correctly when service is running
@@ -89,8 +91,11 @@ public class WindowPresenter {
             controller.getModelChoice().setValue(controller.getModelChoice().getItems().get(0));
 
 //            writePDB(controller, model);
+            sizeModelChoiceSize.setValue(controller.getModelChoice().getItems().size());
             service.restart();
         });
+
+        // Simple Button Listeners
         controller.getClearSearchButton().disableProperty().bind(controller.getEntryField().textProperty().isEmpty());
         controller.getClearSearchButton().setOnAction(e -> controller.getEntryField().clear());
 
@@ -120,10 +125,6 @@ public class WindowPresenter {
         controller.getClearMenu().setOnAction(e -> clearAll(controller,model));
         controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
     }
-
-
-
-
 
     private static void savePDB(Stage stage, WindowController controller, PDBFile model){
         if (model == null){
@@ -167,10 +168,7 @@ public class WindowPresenter {
     }
 
     private static void clearAll(WindowController controller, PDBFile model) {
-
         controller.getPdbText().getItems().clear();
-
-        // TODO: clear visualisation
         controller.getCenterPane().getChildren().clear();
     }
 

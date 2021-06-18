@@ -37,7 +37,7 @@ public class Visualization {
 
         controller.getCenterPane().setOnScroll((ScrollEvent event) -> {
             var curr = camera.getTranslateZ();
-            camera.setTranslateZ(curr + (event.getDeltaY() * 2)); //FIXME: try to scale zoomspeed to figure size
+            camera.setTranslateZ(curr + (event.getDeltaY() * 2)); //FIXME: try to scale zoom speed to figure size
         });
 
 
