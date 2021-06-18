@@ -7,6 +7,21 @@ import javafx.scene.layout.Pane;
 public class WindowController {
 
     @FXML
+    private Label modelLabel;
+
+    @FXML
+    private Button drawButton;
+
+    @FXML
+    private ChoiceBox<Integer> modelChoice;
+
+    @FXML
+    private ChoiceBox<String> viewChoice;
+
+    @FXML
+    private Button clearSearchButton;
+
+    @FXML
     private Slider radiusScale;
 
     @FXML
@@ -136,5 +151,45 @@ public class WindowController {
 
     public void setRadiusScale(Slider radiusScale) {
         this.radiusScale = radiusScale;
+    }
+
+    public Button getClearSearchButton() {
+        return clearSearchButton;
+    }
+
+    public void setClearSearchButton(Button clearSearchButton) {
+        this.clearSearchButton = clearSearchButton;
+    }
+
+    public ChoiceBox<String> getViewChoice() {
+        return viewChoice;
+    }
+
+    public void setViewChoice(ChoiceBox<String> viewChoice) {
+        this.viewChoice = viewChoice;
+    }
+
+    public ChoiceBox<Integer> getModelChoice() {
+        return modelChoice;
+    }
+
+    public void setModelChoice(ChoiceBox<Integer> modelChoice) {
+        this.modelChoice = modelChoice;
+    }
+
+    public Button getDrawButton() {
+        return drawButton;
+    }
+
+    public void setDrawButton(Button drawButton) {
+        this.drawButton = drawButton;
+    }
+
+    public Label getModelLabel() {
+        return modelLabel;
+    }
+
+    public void setModelLabel(Label modelLabel) {
+        this.modelLabel = modelLabel;
     }
 }
