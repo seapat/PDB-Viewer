@@ -88,8 +88,11 @@ public class WindowPresenter {
             for (var item : model.getProtein()){
                 controller.getModelChoice().getItems().add(item.getId());
             }
-            controller.getModelChoice().setValue(controller.getModelChoice().getItems().get(0));
+            try {
+                controller.getModelChoice().setValue(controller.getModelChoice().getItems().get(0));
+            } catch (IndexOutOfBoundsException idxException){
 
+            }
 //            writePDB(controller, model);
             sizeModelChoiceSize.setValue(controller.getModelChoice().getItems().size());
             service.restart();
