@@ -1,5 +1,7 @@
 package CoV2StructureExplorer.model;
 
+import java.util.ArrayList;
+
 public class Atom {
 
 
@@ -9,6 +11,7 @@ public class Atom {
     private final Residue residue;
     private final char chain;
     private final Position position;
+    private ArrayList<Atom> bonds;
 
     Atom(int id, String complexType, char simpleType, char chain, Residue residue, Position position) {
         this.id = id;
@@ -17,10 +20,11 @@ public class Atom {
         this.simpleType = simpleType;
         this.chain = chain;
         this.position = position;
+        this.bonds = new ArrayList<>();
     }
 
 
-    public String getType() {
+    public String getComplexType() {
         return complexType;
     }
 
@@ -42,6 +46,12 @@ public class Atom {
 
     public char getSimpleType() {
         return simpleType;
+    }
+
+    public void addBond(Atom atom) {
+        if (this.getId() != atom.getId()){
+            this.bonds.add(atom);
+        }
     }
 
     // TODO: implement me

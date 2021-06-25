@@ -44,9 +44,7 @@ public class PDBParser {
     // TODO: maintain flat list of atoms
 
     // TODO: bond if distance below x
-
-    // TODO: what to do with SCALE RECORDS?? Multiply with each coordinate: pull SCALE1 as x, SCALE2 as y, SCALE3 as z
-    // TODO: MIGHT NOT BE NEEDED! Probably used to get back to the experimental coords
+    // TODO: übrigens: falls ihr einen distance threshold haben wollt, der bisschen mehr sophisticated ist als einfach 2 anzunehmen, ich habe meinen nach ner funktion von PerlMol definiert: double distanceThreshold = Math.max(atom1.getRadius(), atom2.getRadius())*2*TOLERANCE; (die radien sind die covalent radius werte von wikipedia)
 
     private final Structure structure;
     private BufferedReader reader;
@@ -72,6 +70,8 @@ public class PDBParser {
         } catch (Exception e) {
             System.err.println("Error: Target File Cannot Be Read");
         }
+        createBonds();
+        var test = "";
     }
 
     private Model parseModel(Structure structure, int modelID) {
@@ -147,6 +147,43 @@ public class PDBParser {
         return residue;
     }
 
+    private void createBonds() {
+        Residue prevResidue = null;
+
+        for (var model : structure) {
+            for (var chain : model) {
+                for (var residue : chain) {
+
+                    if (prevResidue != null){
+                        var prevC = prevResidue.stream().filter(x -> x.getComplexType().equals("C")).findFirst().orElse(null);
+                        var currN = residue.stream().filter(x -> x.getComplexType().equals("N")).findFirst().orElse(null);
+                        if (currN != null & prevC != null) {
+                            currN.addBond(prevC);
+                            prevC.addBond(currN);
+                        }
+                    }
+
+                    for (var atom1 : residue) {
+                        for (var atom2 : residue) {
+                            if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < 2 && !atom1.equals(atom2)){
+                                atom1.addBond(atom2);
+                            }
+                        }
+                    }
+                     prevResidue = residue;
+                }
+            }
+        }
+    }
+
+    private double calcDistance(Atom atom1, Atom atom2){
+        var coordsAtom1 = atom1.getPosition();
+        var coordsAtom2 = atom2.getPosition();
+        return Math.sqrt(Math.pow(coordsAtom1.x()  - coordsAtom2.x(), 2)
+                        + Math.pow(coordsAtom1.y()  - coordsAtom2.y(), 2)
+                        + Math.pow(coordsAtom1.z()  - coordsAtom2.z(), 2)
+        );
+    }
 
     private void progressLine(){
         /*
