@@ -16,8 +16,7 @@ public class BallsOnly extends Group {
 
         final int opacity = 1;
         double max = 0;
-        // TODO: add selection for model
-//        int modelChoice = 0;
+        // TODO: bonds belong to the model!
 
         for (var chain: pdb.get(modelChoice -1 )){
             for (var residue: chain) {
@@ -28,7 +27,7 @@ public class BallsOnly extends Group {
 //                        max = x;
 //                    }
 
-                    final Sphere sphere = new Sphere(1, 32);
+                    final Sphere sphere = new Sphere(1, 32); //32
                     final Color color;
                     final double radius;
 
@@ -50,7 +49,7 @@ public class BallsOnly extends Group {
                             radius = 320;
                         }
                         case 'P' -> {
-                            color = Color.GREEN.deriveColor(1,1,1, opacity);
+                            color = Color.ORANGE.deriveColor(1,1,1, opacity);
                             radius = 310;
                         }
                         case 'H' -> {
