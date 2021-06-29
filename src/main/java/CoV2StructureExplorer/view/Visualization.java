@@ -11,8 +11,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
 
-import java.lang.reflect.InvocationTargetException;
-
 public class Visualization {
 
         private Visualization() {}
@@ -22,11 +20,15 @@ public class Visualization {
         final Group figure;
         String choice = controller.getViewChoice().getValue();
         switch (choice) {
-//            case "Spheres" ->  figure = new BallsOnly(model.getProtein(), controller.getRadiusScale().valueProperty());
-            case "Ribbon" -> figure = new BallsSticks();
-            case "Spheres + Ribbon" -> figure = new BallsSticks();
+//            case "Spheres" ->  figure = new Balls(model.getProtein(), controller.getRadiusScale().valueProperty());
+            case "Ribbon" -> figure = new Sticks(model.getProtein(),
+                    controller.getRadiusScale().valueProperty(),
+                    controller.getModelChoice().getValue());
+            case "Spheres + Ribbon" -> figure = new Sticks(model.getProtein(),
+                    controller.getRadiusScale().valueProperty(),
+                    controller.getModelChoice().getValue());
             case "Pseudo-Cartoon" -> figure =new Mesh();
-            default -> figure = new BallsOnly(model.getProtein(),
+            default -> figure = new Balls(model.getProtein(),
                     controller.getRadiusScale().valueProperty(),
                     controller.getModelChoice().getValue());
         }
@@ -74,12 +76,12 @@ public class Visualization {
 
             camera.setFarClip(100000);
             camera.setNearClip(0.1);
-//            camera.setTranslateX((maxX + minX) / 2);
-//            camera.setTranslateY((maxY + minY) / 2);
+            camera.setTranslateX((maxX + minX) / 2);
+            camera.setTranslateY((maxY + minY) / 2);
             camera.setTranslateZ( Math.abs(minZ) * -2 - 1000);
 
-            camera.setTranslateX(avgX);
-            camera.setTranslateY(avgY);
+//            camera.setTranslateX(avgX);
+//            camera.setTranslateY(avgY);
 
 
             pane.setOnMousePressed(e -> {
@@ -94,17 +96,17 @@ public class Visualization {
                 var rotate = new Rotate(0.5 * delta.magnitude(), dragOrthogonalAxis);
 
 
-                    rotate.setPivotX(camera.getTranslateX());
-                    rotate.setPivotY(camera.getTranslateY());
+//                    rotate.setPivotX(camera.getTranslateX());
+//                    rotate.setPivotY(camera.getTranslateY());
                     // cant use camera's z position
 
 
-//                rotate.setPivotX((maxX + minX) / 2);
-//                rotate.setPivotY((maxY + minY) / 2);
-//                rotate.setPivotZ((maxZ + minZ) / 2);
+                rotate.setPivotX((maxX + minX) / 2);
+                rotate.setPivotY((maxY + minY) / 2);
+                rotate.setPivotZ((maxZ + minZ) / 2);
 //                rotate.setPivotX(avgX);
 //                rotate.setPivotY(avgY);
-                rotate.setPivotZ(avgZ);
+//                rotate.setPivotZ(avgZ);
 
                 figureTransformProperty.setValue(rotate.createConcatenation(figureTransformProperty.getValue()));
                 x = e.getSceneX();

@@ -7,12 +7,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Sphere;
 
-public class BallsOnly extends Group {
+public class Balls extends Group {
 
     //sphere.setdrawMode(DrawMode.LINE) to see mesh used for drawing
     // use constructor of sphere to reduce mesh-lines -> better performance sphere(x, y) x = radius, y = subdivisions
 
-    public BallsOnly(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice){
+    public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice){
 
         final int opacity = 1;
         double max = 0;
