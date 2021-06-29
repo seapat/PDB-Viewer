@@ -4,14 +4,14 @@ import java.util.ArrayList;
 
 public class Atom {
 
-
     private final Integer id;
     private final String complexType;
     private final char simpleType;
     private final Residue residue;
     private final char chain;
     private final Position position;
-    private ArrayList<Atom> bonds;
+    private final ArrayList<Atom> bonds;
+    private StructureType secStructure;
 
     Atom(int id, String complexType, char simpleType, char chain, Residue residue, Position position) {
         this.id = id;
@@ -21,6 +21,7 @@ public class Atom {
         this.chain = chain;
         this.position = position;
         this.bonds = new ArrayList<>();
+        this.secStructure = StructureType.COIL;
     }
 
 
@@ -54,12 +55,14 @@ public class Atom {
         }
     }
 
-    // TODO: implement me
-    private enum StructureType {
-        HELIX,
-        STRAND,
-        COIL
+    public void setStructureType(StructureType structureType) {
+        this.secStructure = structureType;
     }
+
+    public StructureType getStructureType() {
+        return secStructure;
+    }
+
 
     // save as record instead of map, list etc. because predefined static length (always 3 coordinates)
     public record Position(double x, double y, double z) {

@@ -7,6 +7,7 @@ public class Residue extends ArrayList<Atom> {
     private final int id;
     private final String type;
     private final Chain chain;
+    private StructureType secStructure;
 
     public Chain getChain() {
         return chain;
@@ -16,6 +17,7 @@ public class Residue extends ArrayList<Atom> {
         this.id = id;
         this.type = type;
         this.chain = chain;
+        this.secStructure = StructureType.COIL;
     }
 
     public String getType() {
@@ -25,5 +27,15 @@ public class Residue extends ArrayList<Atom> {
     public int getId() {
         return id;
     }
+
+    public StructureType getStructureType() {
+        return secStructure;
+    }
+
+    public void setStructure(StructureType secStructure) {
+        this.secStructure = secStructure;
+    }
+
+
 
 }

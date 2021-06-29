@@ -1,6 +1,7 @@
 package CoV2StructureExplorer.model;
 
 import java.io.*;
+import java.util.ArrayList;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
@@ -49,6 +50,8 @@ public class PDBParser {
     private final Structure structure;
     private BufferedReader reader;
     private String currLine;
+    private final ArrayList<Helix> helices = new ArrayList<>();
+    private final ArrayList<Sheet> sheets = new ArrayList<>();
 
     PDBParser(String pdbID, String pdbFile) {
 
@@ -61,6 +64,25 @@ public class PDBParser {
             progressLine();
 
             while ( currLine != null && currLine.trim().length() > 0 ) {
+
+                if (currLine.startsWith("HELIX")) {
+                    helices.add(new Helix(
+                            parseInt(currLine.substring(7, 10).strip()),
+                            parseInt(currLine.substring(21, 25).strip()),
+                            parseInt(currLine.substring(33, 37).strip()),
+                            currLine.charAt(19)
+                    ));
+                }
+                if (currLine.startsWith("SHEET")) {
+                    sheets.add(new Sheet(
+                            parseInt(currLine.substring(7, 10).strip()),
+                            currLine.substring(11, 14).strip(),
+                            parseInt(currLine.substring(22, 26).strip()),
+                            parseInt(currLine.substring(33, 37).strip()),
+                            currLine.charAt(21)
+                    ));
+                }
+
                 if (currLine.startsWith("ATOM")) {
                     structure.add(parseModel(structure, modelID++));
                 }
@@ -68,10 +90,10 @@ public class PDBParser {
             }
             reader.close();
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("Error: Target File Cannot Be Read");
         }
         createBonds();
-        var test = "";
     }
 
     private Model parseModel(Structure structure, int modelID) {
@@ -142,6 +164,28 @@ public class PDBParser {
 
                 residue.add(new Atom(id,complexType, simpleType,chainID, residue, position));
             }
+
+
+            // COIL is default for all residues
+            for (var helix : helices){
+                if (residue.getChain().getChainID() == helix.chain() && residue.getId() >= helix.start() && residue.getId() <= helix.end()){
+                    residue.setStructure(StructureType.HELIX);
+                    residue.forEach(atom -> atom.setStructureType(StructureType.HELIX));
+                    break;
+                }
+            }
+            // only enter if not already helix
+            if (residue.getStructureType() != StructureType.HELIX){
+                for (var sheet : sheets){
+                    if (residue.getChain().getChainID() == sheet.chain() && residue.getId() >= sheet.start() && residue.getId() <= sheet.end()){
+                        residue.setStructure(StructureType.SHEET);
+                        residue.forEach(atom -> atom.setStructureType(StructureType.SHEET));
+                        break;
+                    }
+                }
+
+            }
+
             progressLine();
         }
         return residue;
@@ -199,6 +243,10 @@ public class PDBParser {
     public Structure getStructure() {
         return structure;
     }
+
+    record Helix (int id, int start, int end, char chain){}
+
+    record Sheet (int counter, String id, int start, int end, char chain){}
 
 /* PDB format
 - 1 file == 1 Structure
