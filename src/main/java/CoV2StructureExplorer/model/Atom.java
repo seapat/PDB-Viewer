@@ -15,9 +15,8 @@ public class Atom {
     private final Position position;
     private final ArrayList<Atom> bonds;
     private StructureType secStructure;
-    private int radius;
+    private final int radius;
 
-    // TODO: add DNA atoms
     private final static Map<Character, Integer> atomRadii = Map.ofEntries(
             // single bonded radii found on wikipedia "covalent radius"
             new AbstractMap.SimpleEntry<>('O', 63),
@@ -26,7 +25,6 @@ public class Atom {
             new AbstractMap.SimpleEntry<>('S', 103),
             new AbstractMap.SimpleEntry<>('P', 111),
             new AbstractMap.SimpleEntry<>('H', 32)
-//            new AbstractMap.SimpleEntry<>(null, 100)
     );
 
     public ArrayList<Atom> getBonds() {
@@ -42,7 +40,7 @@ public class Atom {
         this.position = position;
         this.bonds = new ArrayList<>();
         this.secStructure = StructureType.COIL;
-        this.radius = atomRadii.getOrDefault(simpleType, 100);
+        this.radius = atomRadii.getOrDefault(simpleType, 1);
     }
 
     public int getRadius() {
@@ -78,8 +76,6 @@ public class Atom {
             this.bonds.add(atom);
         }
     }
-
-
 
     public void setStructureType(StructureType structureType) {
         this.secStructure = structureType;

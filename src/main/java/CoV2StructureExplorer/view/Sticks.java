@@ -5,7 +5,6 @@ import CoV2StructureExplorer.model.Structure;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Point3D;
 import javafx.scene.Group;
-import javafx.scene.SubScene;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
@@ -33,8 +32,8 @@ public class Sticks extends Group {
 
         for (var bond : bonds){
 
-            var first = new Point3D(bond.getValue().x(),bond.getValue().y(), bond.getValue().z() );
-            var second = new Point3D(bond.getKey().x(),bond.getKey().y(), bond.getKey().z() );
+            var first = new Point3D(bond.getValue().x() * 100,bond.getValue().y() * 100, bond.getValue().z() * 100);
+            var second = new Point3D(bond.getKey().x() * 100,bond.getKey().y() * 100, bond.getKey().z() * 100);
 
             final Point3D YAXIS = new Point3D(0, 100, 0);
             var midpoint = first.midpoint(second);
@@ -49,6 +48,7 @@ public class Sticks extends Group {
             cylinder.setTranslateZ(midpoint.getZ());
             cylinder.setScaleY(first.distance(second) / cylinder.getHeight());
 
+            // TODO: get rid of shades when coloring
             cylinder.setCullFace(CullFace.BACK);
             cylinder.setDrawMode(DrawMode.FILL);
             PhongMaterial material = new PhongMaterial();
@@ -64,33 +64,6 @@ public class Sticks extends Group {
         var debug = "";
     }
 
-
-
-//        for (Pair<Integer, Integer> bond : model.bonds()) {
-//            var a = model.getLocation(bond.getKey());
-//            var b = model.getLocation(bond.getValue());
-//
-//            final Point3D YAXIS = new Point3D(0, 100, 0);
-//            var midpoint = a.midpoint(b);
-//            var direction = b.subtract(a);
-//            var perpendicularAxis = YAXIS.crossProduct(direction);
-//            var angle = YAXIS.angle(direction);
-//            var cylinder = new Cylinder(5, 100);
-//            cylinder.setRotationAxis(perpendicularAxis);
-//            cylinder.setRotate(angle);
-//            cylinder.setTranslateX(midpoint.getX());
-//            cylinder.setTranslateY(midpoint.getY());
-//            cylinder.setTranslateZ(midpoint.getZ());
-//            cylinder.setScaleY(a.distance(b) / cylinder.getHeight());
-//
-//            cylinder.setCullFace(CullFace.BACK);
-//            cylinder.setDrawMode(DrawMode.FILL);
-//            PhongMaterial material = new PhongMaterial();
-//            material.setDiffuseColor(Color.GREY);
-//            cylinder.setMaterial(material);
-//
-//            figure.getChildren().add(cylinder);
-//        }
 
 
 }

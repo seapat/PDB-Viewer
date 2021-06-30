@@ -150,6 +150,7 @@ public class PDBParser {
                 return residue;
             }
 
+            // TODO: separate method createAtom(residue)
             if (currLine.startsWith("ATOM")) {
                 String complexType = currLine.substring(12, 16).strip();
                 char simpleType = currLine.charAt(77);
@@ -167,6 +168,7 @@ public class PDBParser {
             }
 
 
+            // TODO: separate Methode attach secStructures(residue) -> could be static
             // COIL is default for all residues
             for (var helix : helices){
                 if (residue.getChain().getChainID() == helix.chain() && residue.getId() >= helix.start() && residue.getId() <= helix.end()){
@@ -211,11 +213,11 @@ public class PDBParser {
         }
     }
 
-    private void createBondsHelper(Residue residue1, Residue residue2){
+    private static void createBondsHelper(Residue residue1, Residue residue2){
         for (var atom1 : residue1) {
             for (var atom2 : residue2) {
                 // FIXME: distance does not work for some cases (eg in 6ZOJ) -> flaoting residues
-                double distanceThreshold = ((double)atom1.getRadius() / 100 + (double)atom2.getRadius() / 100 ) * BOND_TOLERANCE;
+                double distanceThreshold = (atom1.getRadius() + atom2.getRadius()) * BOND_TOLERANCE;
                 if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < distanceThreshold && !atom1.equals(atom2)){
                     atom1.addBond(atom2);
                 }
@@ -223,13 +225,13 @@ public class PDBParser {
         }
     }
 
-    private double calcDistance(Atom atom1, Atom atom2){
+    private static double calcDistance(Atom atom1, Atom atom2){
         var coordsAtom1 = atom1.getPosition();
         var coordsAtom2 = atom2.getPosition();
         return Math.sqrt(Math.pow(coordsAtom1.x()  - coordsAtom2.x(), 2)
                         + Math.pow(coordsAtom1.y()  - coordsAtom2.y(), 2)
                         + Math.pow(coordsAtom1.z()  - coordsAtom2.z(), 2)
-        );
+        ) * 100;
     }
 
     private void progressLine(){

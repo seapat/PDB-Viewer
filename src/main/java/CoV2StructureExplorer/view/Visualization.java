@@ -25,14 +25,32 @@ public class Visualization {
         final Group figure;
         String choice = controller.getViewChoice().getValue();
         switch (choice) {
-//            case "Spheres" ->  figure = new Balls(model.getProtein(), controller.getRadiusScale().valueProperty());
+//            case "Spheres" ->  figure = new Balls(model.getProtein(),
+//                    controller.getRadiusScale().valueProperty(),
+//                    controller.getModelChoice().getValue());
             case "Ribbon" -> figure = new Sticks(model.getProtein(),
                     controller.getDiameterScale().valueProperty(), //TODO: change to slide for sticks
                     controller.getModelChoice().getValue());
-            case "Spheres + Ribbon" -> figure = new Sticks(model.getProtein(),
-                    controller.getRadiusScale().valueProperty(),
-                    controller.getModelChoice().getValue());
-            case "Pseudo-Cartoon" -> figure =new Mesh();
+            case "Spheres + Ribbon" -> {
+                var balls = new Balls(model.getProtein(),
+                        controller.getRadiusScale().valueProperty(),
+                        controller.getModelChoice().getValue());
+                var sticks = new Sticks(model.getProtein(),
+                        controller.getDiameterScale().valueProperty(),
+                        controller.getModelChoice().getValue());
+                balls.getChildren().addAll(sticks.getChildren());
+                figure = balls;
+
+            }
+//                    new Group(new Sticks(model.getProtein(),
+//                    controller.getRadiusScale().valueProperty(),
+//                    controller.getModelChoice().getValue()),
+//                                            new Balls(model.getProtein(),
+//                    controller.getRadiusScale().valueProperty(),
+//                    controller.getModelChoice().getValue())
+//            );
+
+            case "Pseudo-Cartoon" -> figure = new Mesh();
             default -> figure = new Balls(model.getProtein(),
                     controller.getRadiusScale().valueProperty(),
                     controller.getModelChoice().getValue());

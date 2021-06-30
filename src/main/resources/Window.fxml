@@ -56,8 +56,8 @@
             <BorderPane BorderPane.alignment="CENTER">
                 <top>
                     <ToolBar BorderPane.alignment="CENTER">
-                        <Slider fx:id="radiusScale" max="0.15" min="0.05" prefWidth="100.0" value="0.1" />
-                  <Slider fx:id="diameterScale" max="0.5" min="0.1" prefWidth="100.0" value="0.3" />
+                        <Slider fx:id="radiusScale" max="1.5" min="0.5" prefWidth="100.0" value="1.0" />
+                  <Slider fx:id="diameterScale" max="5.0" min="1.0" prefWidth="100.0" value="2.5" />
                     <Pane HBox.hgrow="ALWAYS" />
                   <Separator orientation="VERTICAL" />
                   <Label nodeOrientation="LEFT_TO_RIGHT" text="Style" />
