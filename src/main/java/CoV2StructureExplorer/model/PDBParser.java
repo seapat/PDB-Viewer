@@ -199,27 +199,25 @@ public class PDBParser {
             for (var chain : model) {
                 for (var residue : chain) {
 
-                    // add bonds BETWEEN residues
-                    if (prevResidue != null && !residue.equals(chain.get(0))){
-                        var prevC = prevResidue.stream().filter(x -> x.getComplexType().equals("C")).findFirst().orElse(null);
-                        var currN = residue.stream().filter(x -> x.getComplexType().equals("N")).findFirst().orElse(null);
-                        if (currN != null & prevC != null ) { //&& calcDistance(currN, prevC) < distanceThreshold
-                            currN.addBond(prevC);
-                            prevC.addBond(currN);
-                        }
-                    }
-
                     // add bonds WITHIN residues
-                    for (var atom1 : residue) {
-                        for (var atom2 : residue) {
-                            // FIXME: distance does not work for some cases (eg in 6ZOJ) -> flaoting residues
-                             double distanceThreshold = ((double)atom1.getRadius() / 100 + (double)atom2.getRadius() / 100 ) * BOND_TOLERANCE;
-                            if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < distanceThreshold && !atom1.equals(atom2)){
-                                atom1.addBond(atom2);
-                            }
-                        }
+                    createBondsHelper(residue, residue);
+                    // add bonds BETWEEN residues
+                    if (prevResidue != null && !residue.equals(chain.get(0))) {
+                        createBondsHelper(residue, prevResidue);
                     }
                      prevResidue = residue;
+                }
+            }
+        }
+    }
+
+    private void createBondsHelper(Residue residue1, Residue residue2){
+        for (var atom1 : residue1) {
+            for (var atom2 : residue2) {
+                // FIXME: distance does not work for some cases (eg in 6ZOJ) -> flaoting residues
+                double distanceThreshold = ((double)atom1.getRadius() / 100 + (double)atom2.getRadius() / 100 ) * BOND_TOLERANCE;
+                if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < distanceThreshold && !atom1.equals(atom2)){
+                    atom1.addBond(atom2);
                 }
             }
         }
