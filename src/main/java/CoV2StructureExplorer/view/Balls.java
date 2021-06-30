@@ -10,27 +10,22 @@ import javafx.scene.shape.Sphere;
 public class Balls extends Group {
 
     //sphere.setdrawMode(DrawMode.LINE) to see mesh used for drawing
-    // use constructor of sphere to reduce mesh-lines -> better performance sphere(x, y) x = radius, y = subdivisions
 
     public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice){
 
         final int opacity = 1;
         double max = 0;
-        // TODO: bonds belong to the model!
 
         for (var chain: pdb.get(modelChoice -1 )){
             for (var residue: chain) {
                 for (var atom: residue) {
 
-//                    var x = atom.getPosition().x();
-//                    if (x > max) {
-//                        max = x;
-//                    }
-
-                    final Sphere sphere = new Sphere(1, 32); //32
+                    final Sphere sphere = new Sphere(radiusScale.getValue(), 32); //32
                     final Color color;
                     final double radius;
 
+                    // TODO: add DNA atoms
+                    // TODO: AMybe make this a separate method?
                     switch (atom.getSimpleType()) {
                         case 'O' -> {
                             color = Color.RED.deriveColor(1,1,1, opacity);
@@ -66,15 +61,13 @@ public class Balls extends Group {
                     sphere.setTranslateY(15 * atom.getPosition().y());
                     sphere.setTranslateZ(15 * atom.getPosition().z());
                     sphere.setMaterial(new PhongMaterial(color));
-                    sphere.radiusProperty().bind(radiusScale.multiply(radius));
+                    sphere.radiusProperty().bind(radiusScale.multiply(atom.getRadius())); //radius
                     getChildren().add(sphere);
                 }
             }
 
         }
 
-
-//        System.out.println(max);
     }
 
 }

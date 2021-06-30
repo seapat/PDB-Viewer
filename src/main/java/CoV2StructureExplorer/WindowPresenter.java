@@ -56,6 +56,7 @@ public class WindowPresenter {
         });
 
         // load new visualisation, clear only visualisation tab
+        //TODO: disable if nothing new selected to draw, alternatively: prevent unnecessary redraw (eg: no new speheres if already drawn and we want to add sticks)
         controller.getDrawButton().setOnAction(e-> {
             controller.getCenterPane().getChildren().clear();
             Visualization.setupMoleculeVisualization(controller, model);
