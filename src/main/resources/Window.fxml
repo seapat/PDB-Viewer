@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CoV2StructureExplorer.view.WindowController">
     <MenuBar>
         <Menu mnemonicParsing="false" text="File">
@@ -39,6 +57,7 @@
                 <top>
                     <ToolBar BorderPane.alignment="CENTER">
                         <Slider fx:id="radiusScale" max="0.15" min="0.05" prefWidth="100.0" value="0.1" />
+                  <Slider fx:id="diameterScale" max="0.5" min="0.1" prefWidth="100.0" value="0.3" />
                     <Pane HBox.hgrow="ALWAYS" />
                   <Separator orientation="VERTICAL" />
                   <Label nodeOrientation="LEFT_TO_RIGHT" text="Style" />

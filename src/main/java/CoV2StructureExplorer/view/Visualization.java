@@ -17,6 +17,8 @@ public class Visualization {
 
     // TODO: Don't reset camera on drawing, important when we want to add sticks etc.
 
+    // FIXME: same initial distance when drawing sticks or balls
+    // FIXME: somethings wrong with mouse-scrolling (zoom) behaves differently depending on view loaded, too sensitive for sticks
 
     public static void setupMoleculeVisualization(WindowController controller, PDBFile model) {
 
@@ -25,7 +27,7 @@ public class Visualization {
         switch (choice) {
 //            case "Spheres" ->  figure = new Balls(model.getProtein(), controller.getRadiusScale().valueProperty());
             case "Ribbon" -> figure = new Sticks(model.getProtein(),
-                    controller.getRadiusScale().valueProperty(), //TODO: change to slide for sticks
+                    controller.getDiameterScale().valueProperty(), //TODO: change to slide for sticks
                     controller.getModelChoice().getValue());
             case "Spheres + Ribbon" -> figure = new Sticks(model.getProtein(),
                     controller.getRadiusScale().valueProperty(),
@@ -66,12 +68,13 @@ public class Visualization {
         private static double y ;
         private static void installRotate (Pane pane , Camera camera, Group figure, Property<Transform> figureTransformProperty ) {
 
+            // TODO: maybe extract parts here ? figure.getChildren().stream() perhaps?
             var maxX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).max(Double::compare).orElse(0d);
             var maxY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).max(Double::compare).orElse(0d);
+            var maxZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).max(Double::compare).orElse(0d);
             var minX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).min(Double::compare).orElse(0d);
             var minY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).min(Double::compare).orElse(0d);
             var minZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).min(Double::compare).orElse(0d);
-            var maxZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).max(Double::compare).orElse(0d);
 
             var avgX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);
             var avgY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);

@@ -17,10 +17,7 @@ import java.util.HashSet;
 
 public class Sticks extends Group {
 
-
-    // FIXME: in the 5jxv (NMR) there is something weird going on with one specific bond
-
-    public Sticks(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice){
+    public Sticks(Structure pdb, ReadOnlyDoubleProperty diameterScale, Integer modelChoice){
 
         var bonds = new HashSet<Pair<Atom.Position, Atom.Position>>();
 
@@ -44,7 +41,7 @@ public class Sticks extends Group {
             var direction = second.subtract(first);
             var perpendicularAxis = YAXIS.crossProduct(direction);
             var angle = YAXIS.angle(direction);
-            var cylinder = new Cylinder(0.1, 1, 32);
+            var cylinder = new Cylinder(diameterScale.getValue(), 1, 32);
             cylinder.setRotationAxis(perpendicularAxis);
             cylinder.setRotate(angle);
             cylinder.setTranslateX(midpoint.getX());
@@ -57,6 +54,8 @@ public class Sticks extends Group {
             PhongMaterial material = new PhongMaterial();
             material.setDiffuseColor(Color.GREY);
             cylinder.setMaterial(material);
+
+            cylinder.radiusProperty().bind(diameterScale.multiply(cylinder.getRadius()));
 
             getChildren().add(cylinder);
 

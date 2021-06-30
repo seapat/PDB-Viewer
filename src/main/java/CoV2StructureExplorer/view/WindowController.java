@@ -6,6 +6,7 @@ import javafx.scene.layout.Pane;
 
 public class WindowController {
 
+
     @FXML
     private Label modelLabel;
 
@@ -23,6 +24,9 @@ public class WindowController {
 
     @FXML
     private Slider radiusScale;
+
+    @FXML
+    private Slider diameterScale;
 
     @FXML
     private Label infoLabel;
@@ -191,5 +195,13 @@ public class WindowController {
 
     public void setModelLabel(Label modelLabel) {
         this.modelLabel = modelLabel;
+    }
+
+    public Slider getDiameterScale() {
+        return diameterScale;
+    }
+
+    public void setDiameterScale(Slider diameterScale) {
+        this.diameterScale = diameterScale;
     }
 }
