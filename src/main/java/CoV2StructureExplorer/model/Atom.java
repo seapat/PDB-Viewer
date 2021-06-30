@@ -1,6 +1,9 @@
 package CoV2StructureExplorer.model;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Atom {
 
@@ -12,6 +15,19 @@ public class Atom {
     private final Position position;
     private final ArrayList<Atom> bonds;
     private StructureType secStructure;
+    private int radius;
+
+    // TODO: add DNA atoms
+    private final static Map<Character, Integer> atomRadii = Map.ofEntries(
+            // single bonded radii found on wikipedia "covalent radius"
+            new AbstractMap.SimpleEntry<>('O', 63),
+            new AbstractMap.SimpleEntry<>('C', 75),
+            new AbstractMap.SimpleEntry<>('N', 71),
+            new AbstractMap.SimpleEntry<>('S', 103),
+            new AbstractMap.SimpleEntry<>('P', 111),
+            new AbstractMap.SimpleEntry<>('H', 32)
+//            new AbstractMap.SimpleEntry<>(null, 100)
+    );
 
     public ArrayList<Atom> getBonds() {
         return bonds;
@@ -26,8 +42,12 @@ public class Atom {
         this.position = position;
         this.bonds = new ArrayList<>();
         this.secStructure = StructureType.COIL;
+        this.radius = atomRadii.getOrDefault(simpleType, 100);
     }
 
+    public int getRadius() {
+        return radius;
+    }
 
     public String getComplexType() {
         return complexType;

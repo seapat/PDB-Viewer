@@ -7,6 +7,8 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
 public class PDBParser {
+
+    static final double BOND_TOLERANCE = 1.1;
     /*
     Reads the content of .pdb files.
     A single reader object is created for the instance of the class, lines are progressed from various methods.
@@ -42,10 +44,9 @@ public class PDBParser {
 
     //TODO: next to progressLine() method: method to count atoms etc for statistics MAYBE USE MASTER RECORD
 
-    // TODO: maintain flat list of atoms
-
-    // TODO: bond if distance below x
-    // TODO: übrigens: falls ihr einen distance threshold haben wollt, der bisschen mehr sophisticated ist als einfach 2 anzunehmen, ich habe meinen nach ner funktion von PerlMol definiert: double distanceThreshold = Math.max(atom1.getRadius(), atom2.getRadius())*2*TOLERANCE; (die radien sind die covalent radius werte von wikipedia)
+    // TODO: übrigens: falls ihr einen distance threshold haben wollt, der bisschen mehr sophisticated ist als einfach 2 anzunehmen,
+    //  ich habe meinen nach ner funktion von PerlMol definiert:
+    //  double distanceThreshold = Math.max(atom1.getRadius(), atom2.getRadius())*2*TOLERANCE; (die radien sind die covalent radius werte von wikipedia)
 
     private final Structure structure;
     private BufferedReader reader;
@@ -202,7 +203,7 @@ public class PDBParser {
                     if (prevResidue != null && !residue.equals(chain.get(0))){
                         var prevC = prevResidue.stream().filter(x -> x.getComplexType().equals("C")).findFirst().orElse(null);
                         var currN = residue.stream().filter(x -> x.getComplexType().equals("N")).findFirst().orElse(null);
-                        if (currN != null & prevC != null ) { //&& calcDistance(currN, prevC) < 2
+                        if (currN != null & prevC != null ) { //&& calcDistance(currN, prevC) < distanceThreshold
                             currN.addBond(prevC);
                             prevC.addBond(currN);
                         }
@@ -211,7 +212,9 @@ public class PDBParser {
                     // add bonds WITHIN residues
                     for (var atom1 : residue) {
                         for (var atom2 : residue) {
-                            if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < 2 && !atom1.equals(atom2)){ // FIXME: distance of two does not work for H atoms in nmr structures
+                            // FIXME: distance does not work for some cases (eg in 6ZOJ) -> flaoting residues
+                             double distanceThreshold = ((double)atom1.getRadius() / 100 + (double)atom2.getRadius() / 100 ) * BOND_TOLERANCE;
+                            if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < distanceThreshold && !atom1.equals(atom2)){
                                 atom1.addBond(atom2);
                             }
                         }
