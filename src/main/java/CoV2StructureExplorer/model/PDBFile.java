@@ -14,6 +14,9 @@ public class PDBFile {
      everything else is redundant already
      */
 
+    // FIXME: Error below shows up when clicking on "draw" before parsing a model, just catch the exception
+    //  Exception in thread "JavaFX Application Thread" java.lang.NullPointerException: Cannot invoke "CoV2StructureExplorer.model.PDBFile.getProtein()" because "model" is null
+
     private final String pdbID;
     private final String content;
     private final Structure structure;
@@ -36,8 +39,6 @@ public class PDBFile {
         this.structure = new PDBParser(pdbID,this.content).getStructure();
     }
 
-
-
     private static String getPDBString(Path path) {
         try {
             return Files.readString(path); //Files.newInputStream(path); //
@@ -47,9 +48,7 @@ public class PDBFile {
             return "";//InputStream.nullInputStream();
         }
     }
-
-
-
+    
     // FIXME: use this.content and have one less arguments to hand over?
     public void savePDBFile(Path path) {
         try {

@@ -13,6 +13,10 @@ public class Atom {
     private final ArrayList<Atom> bonds;
     private StructureType secStructure;
 
+    public ArrayList<Atom> getBonds() {
+        return bonds;
+    }
+
     Atom(int id, String complexType, char simpleType, char chain, Residue residue, Position position) {
         this.id = id;
         this.residue = residue;
@@ -54,6 +58,8 @@ public class Atom {
             this.bonds.add(atom);
         }
     }
+
+
 
     public void setStructureType(StructureType structureType) {
         this.secStructure = structureType;

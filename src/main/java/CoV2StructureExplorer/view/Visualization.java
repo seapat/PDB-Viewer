@@ -15,6 +15,9 @@ public class Visualization {
 
         private Visualization() {}
 
+    // TODO: Don't reset camera on drawing, important when we want to add sticks etc.
+
+
     public static void setupMoleculeVisualization(WindowController controller, PDBFile model) {
 
         final Group figure;
@@ -22,7 +25,7 @@ public class Visualization {
         switch (choice) {
 //            case "Spheres" ->  figure = new Balls(model.getProtein(), controller.getRadiusScale().valueProperty());
             case "Ribbon" -> figure = new Sticks(model.getProtein(),
-                    controller.getRadiusScale().valueProperty(),
+                    controller.getRadiusScale().valueProperty(), //TODO: change to slide for sticks
                     controller.getModelChoice().getValue());
             case "Spheres + Ribbon" -> figure = new Sticks(model.getProtein(),
                     controller.getRadiusScale().valueProperty(),

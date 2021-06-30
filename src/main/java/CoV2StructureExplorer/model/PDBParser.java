@@ -198,18 +198,20 @@ public class PDBParser {
             for (var chain : model) {
                 for (var residue : chain) {
 
-                    if (prevResidue != null){
+                    // add bonds BETWEEN residues
+                    if (prevResidue != null && !residue.equals(chain.get(0))){
                         var prevC = prevResidue.stream().filter(x -> x.getComplexType().equals("C")).findFirst().orElse(null);
                         var currN = residue.stream().filter(x -> x.getComplexType().equals("N")).findFirst().orElse(null);
-                        if (currN != null & prevC != null) {
+                        if (currN != null & prevC != null ) { //&& calcDistance(currN, prevC) < 2
                             currN.addBond(prevC);
                             prevC.addBond(currN);
                         }
                     }
 
+                    // add bonds WITHIN residues
                     for (var atom1 : residue) {
                         for (var atom2 : residue) {
-                            if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < 2 && !atom1.equals(atom2)){
+                            if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < 2 && !atom1.equals(atom2)){ // FIXME: distance of two does not work for H atoms in nmr structures
                                 atom1.addBond(atom2);
                             }
                         }
