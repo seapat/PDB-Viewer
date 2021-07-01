@@ -1,7 +1,7 @@
 package CoV2StructureExplorer.model;
 
 public enum StructureType {
-        HELIX,
+    HELIX,
     SHEET,
-        COIL
+    COIL
 }

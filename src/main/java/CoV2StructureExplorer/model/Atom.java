@@ -17,6 +17,7 @@ public class Atom {
     private StructureType secStructure;
     private final int radius;
 
+    // Maybe change these to Angstrom ( x / 100) have to be then multiplied by in view
     private final static Map<Character, Integer> atomRadii = Map.ofEntries(
             // single bonded radii found on wikipedia "covalent radius"
             new AbstractMap.SimpleEntry<>('O', 63),
@@ -84,7 +85,6 @@ public class Atom {
     public StructureType getStructureType() {
         return secStructure;
     }
-
 
     // save as record instead of map, list etc. because predefined static length (always 3 coordinates)
     public record Position(double x, double y, double z) {
