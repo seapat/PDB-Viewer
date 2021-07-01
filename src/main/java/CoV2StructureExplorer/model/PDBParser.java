@@ -39,14 +39,7 @@ public class PDBParser {
             ...
      */
 
-    // TODO: add residues, chain etc. to class scope to be able to change them from other methods
-    //  (e.g. add stats (count, avg ...) or add coord of CA/midpoint to residues
-
-    //TODO: next to progressLine() method: method to count atoms etc for statistics MAYBE USE MASTER RECORD
-
-    // TODO: übrigens: falls ihr einen distance threshold haben wollt, der bisschen mehr sophisticated ist als einfach 2 anzunehmen,
-    //  ich habe meinen nach ner funktion von PerlMol definiert:
-    //  double distanceThreshold = Math.max(atom1.getRadius(), atom2.getRadius())*2*TOLERANCE; (die radien sind die covalent radius werte von wikipedia)
+    //TODO: next to calls of progressLine() method: method to count atoms etc for statistics MAYBE USE MASTER RECORD
 
     private final Structure structure;
     private BufferedReader reader;
@@ -99,7 +92,6 @@ public class PDBParser {
 
     private Model parseModel(Structure structure, int modelID) {
 
-
         var model = new Model(structure, modelID);
 
         while ( currLine != null && currLine.trim().length() > 0 ) {
@@ -150,48 +142,48 @@ public class PDBParser {
                 return residue;
             }
 
-            // TODO: separate method createAtom(residue)
             if (currLine.startsWith("ATOM")) {
-                String complexType = currLine.substring(12, 16).strip();
-                char simpleType = currLine.charAt(77);
-                int id = parseInt(currLine.substring(6, 11).strip());
-                char chainID = currLine.charAt(21);
-
-
-                var position = new Atom.Position(
-                        parseDouble(currLine.substring(30, 38)),
-                        parseDouble(currLine.substring(38, 46)),
-                        parseDouble(currLine.substring(46, 55))
-                );
-
-                residue.add(new Atom(id,complexType, simpleType,chainID, residue, position));
+                residue.add(parseAtom(residue));
             }
 
-
-            // TODO: separate Methode attach secStructures(residue) -> could be static
-            // COIL is default for all residues
-            for (var helix : helices){
-                if (residue.getChain().getChainID() == helix.chain() && residue.getId() >= helix.start() && residue.getId() <= helix.end()){
-                    residue.setStructure(StructureType.HELIX);
-                    residue.forEach(atom -> atom.setStructureType(StructureType.HELIX));
-                    break;
-                }
-            }
-            // only enter if not already helix
-            if (residue.getStructureType() != StructureType.HELIX){
-                for (var sheet : sheets){
-                    if (residue.getChain().getChainID() == sheet.chain() && residue.getId() >= sheet.start() && residue.getId() <= sheet.end()){
-                        residue.setStructure(StructureType.SHEET);
-                        residue.forEach(atom -> atom.setStructureType(StructureType.SHEET));
-                        break;
-                    }
-                }
-
-            }
-
+            attachSecStructure(residue);
             progressLine();
         }
         return residue;
+    }
+
+    private Atom parseAtom(Residue residue) {
+
+            String complexType = currLine.substring(12, 16).strip();
+            char simpleType = currLine.charAt(77);
+            int id = parseInt(currLine.substring(6, 11).strip());
+            char chainID = currLine.charAt(21);
+
+            var position = new Atom.Position(
+                    parseDouble(currLine.substring(30, 38)),
+                    parseDouble(currLine.substring(38, 46)),
+                    parseDouble(currLine.substring(46, 55))
+            );
+        return new Atom(id,complexType, simpleType,chainID, residue, position);
+    }
+
+    private void attachSecStructure(Residue residue){
+        for (var helix : helices){
+            if (residue.getChain().getChainID() == helix.chain() && residue.getId() >= helix.start() && residue.getId() <= helix.end()){
+                residue.setStructure(StructureType.HELIX);
+                residue.forEach(atom -> atom.setStructureType(StructureType.HELIX));
+                break;
+            }
+        }
+        if (residue.getStructureType() != StructureType.HELIX){
+            for (var sheet : sheets){
+                if (residue.getChain().getChainID() == sheet.chain() && residue.getId() >= sheet.start() && residue.getId() <= sheet.end()){
+                    residue.setStructure(StructureType.SHEET);
+                    residue.forEach(atom -> atom.setStructureType(StructureType.SHEET));
+                    break;
+                }
+            }
+        }
     }
 
     private void createBonds() {
@@ -216,7 +208,6 @@ public class PDBParser {
     private static void createBondsHelper(Residue residue1, Residue residue2){
         for (var atom1 : residue1) {
             for (var atom2 : residue2) {
-                // FIXME: distance does not work for some cases (eg in 6ZOJ) -> flaoting residues
                 double distanceThreshold = (atom1.getRadius() + atom2.getRadius()) * BOND_TOLERANCE;
                 if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < distanceThreshold && !atom1.equals(atom2)){
                     atom1.addBond(atom2);
