@@ -13,4 +13,5 @@ module CoV2StructureExplorer {
     opens CoV2StructureExplorer.view to javafx.fxml;
 
     exports CoV2StructureExplorer;
+    opens CoV2StructureExplorer to javafx.fxml;
 }
