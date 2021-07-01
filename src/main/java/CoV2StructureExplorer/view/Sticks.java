@@ -10,7 +10,6 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.DrawMode;
-import javafx.util.Pair;
 
 import java.util.HashSet;
 
@@ -18,29 +17,29 @@ public class Sticks extends Group {
 
     public Sticks(Structure pdb, ReadOnlyDoubleProperty diameterScale, Integer modelChoice){
 
-        var bonds = new HashSet<Pair<Atom.Position, Atom.Position>>();
-
+        var bonds = new HashSet<MyPair<Atom.Position, Atom.Position>>();
         for (var chain: pdb.get(modelChoice -1 )) {
             for (var residue : chain) {
                 for (var atom : residue) {
                     for (var bond : atom.getBonds()) {
-                        bonds.add(new Pair<>(atom.getPosition(), bond.getPosition()));
+                        bonds.add(new MyPair<>(atom.getPosition(), bond.getPosition()));
                     }
                 }
             }
         }
+        System.out.println("bonds: " + bonds.size());
 
         for (var bond : bonds){
 
-            var first = new Point3D(bond.getValue().x() * 100,bond.getValue().y() * 100, bond.getValue().z() * 100);
-            var second = new Point3D(bond.getKey().x() * 100,bond.getKey().y() * 100, bond.getKey().z() * 100);
+            var first = new Point3D(bond.getRight().x() * 100,bond.getRight().y() * 100, bond.getRight().z() * 100);
+            var second = new Point3D(bond.getLeft().x() * 100,bond.getLeft().y() * 100, bond.getLeft().z() * 100);
 
-            final Point3D YAXIS = new Point3D(0, 100, 0);
+            final Point3D yAxis = new Point3D(0, 100, 0);
             var midpoint = first.midpoint(second);
-            var direction = second.subtract(first);
-            var perpendicularAxis = YAXIS.crossProduct(direction);
-            var angle = YAXIS.angle(direction);
-            var cylinder = new Cylinder(diameterScale.getValue(), 1, 32);
+            var direction = first.subtract(second);
+            var perpendicularAxis = yAxis.crossProduct(direction);
+            var angle = yAxis.angle(direction);
+            var cylinder = new Cylinder(1, 100, 32);
             cylinder.setRotationAxis(perpendicularAxis);
             cylinder.setRotate(angle);
             cylinder.setTranslateX(midpoint.getX());
@@ -48,22 +47,48 @@ public class Sticks extends Group {
             cylinder.setTranslateZ(midpoint.getZ());
             cylinder.setScaleY(first.distance(second) / cylinder.getHeight());
 
-            // TODO: get rid of shades when coloring
-            cylinder.setCullFace(CullFace.BACK);
-            cylinder.setDrawMode(DrawMode.FILL);
             PhongMaterial material = new PhongMaterial();
-            material.setDiffuseColor(Color.GREY);
+            material.setDiffuseColor(Color.BLACK);
+            material.setSpecularPower(0);
             cylinder.setMaterial(material);
 
             cylinder.radiusProperty().bind(diameterScale.multiply(cylinder.getRadius()));
 
             getChildren().add(cylinder);
 
-
         }
-        var debug = "";
+        System.out.println("sticks: " + this.getChildren().size());
     }
 
+    private record MyPair<L, R>(L left, R right) {
+
+        private MyPair {
+            assert left != null;
+            assert right != null;
+        }
+
+        public L getLeft() {
+            return left;
+        }
+
+        public R getRight() {
+            return right;
+        }
+
+        @Override
+        public int hashCode() {
+            return left.hashCode() ^ right.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof MyPair pairo)) return false;
+            return this.left.equals(pairo.getLeft()) && this.right.equals(pairo.getRight())
+                    ||
+                    this.right.equals(pairo.getLeft()) && this.left.equals(pairo.getRight());
+        }
+
+    }
 
 
 }
