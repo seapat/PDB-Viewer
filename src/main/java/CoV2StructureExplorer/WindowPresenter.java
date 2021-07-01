@@ -2,7 +2,6 @@ package CoV2StructureExplorer;
 
 import CoV2StructureExplorer.model.PDBFile;
 import CoV2StructureExplorer.model.PDBWeb;
-import CoV2StructureExplorer.view.Visualization;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,11 +23,10 @@ public class WindowPresenter {
 
     private WindowPresenter() {}
 
-    // non-static allows easy reassignment of model
     private static PDBFile model;
     static void setup(Stage stage, WindowController controller){ //, PDBFile model
 
-        // set items to be displayed in choicebox for visualisation style
+        // setup ChoiceBox
         controller.getViewChoice().getItems().addAll("Spheres", "Spheres + Ribbon", "Ribbon", "Pseudo-Cartoon");
         controller.getViewChoice().setValue("Spheres");
 
@@ -38,7 +36,6 @@ public class WindowPresenter {
         controller.getModelLabel().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
         controller.getModelChoice().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
         controller.getModelLabel().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
-
 
         // service to parse pdb file in background
         var service = new Service<ArrayList<String>>() {
@@ -56,12 +53,11 @@ public class WindowPresenter {
         });
 
         // load new visualisation, clear only visualisation tab
-        //TODO: disable if nothing new selected to draw, alternatively: prevent unnecessary redraw (eg: no new speheres if already drawn and we want to add sticks)
+        //TODO: disable if nothing new selected to draw, alternatively: prevent unnecessary redraw (eg: no new spheres if already drawn and we want to add sticks)
         controller.getDrawButton().setOnAction(e-> {
             controller.getCenterPane().getChildren().clear();
-            Visualization.setupMoleculeVisualization(controller, model);
+            Visualization.setupVisualization(controller, model);
         });
-
 
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
         controller.getParseButton().disableProperty().bind(
@@ -92,7 +88,7 @@ public class WindowPresenter {
             try {
                 controller.getModelChoice().setValue(controller.getModelChoice().getItems().get(0));
             } catch (IndexOutOfBoundsException idxException){
-
+                //do nothing
             }
 //            writePDB(controller, model);
             sizeModelChoiceSize.setValue(controller.getModelChoice().getItems().size());
@@ -176,13 +172,32 @@ public class WindowPresenter {
         controller.getCenterPane().getChildren().clear();
     }
 
+    private static void writePDB(WindowController controller, PDBFile model){
+
+        var reader = new BufferedReader(new StringReader(model.getContent()));
+
+        long size = reader.lines().count();
+        long count = 0;
+        ObservableList<String> lines = FXCollections.observableArrayList();
+
+        Scanner scanner = new Scanner(model.getContent());
+
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            lines.add(line);
+            controller.getPdbText().getItems().add(line);
+            count++;
+        }
+        scanner.close();
+    }
+
     // FIXME: either this or WritePDB
     private static class pdbTextTask extends Task<ArrayList<String>> {
         @Override
         public ArrayList<String> call() throws IOException {
 
             var reader = new BufferedReader(new StringReader(model.getContent()));
-            long size = model.getContent().lines().count();//reader.lines().count(); // model.getContent().lines().split("\r\n|\r|\n").length;
+            long size = model.getContent().lines().count();
             long count = 0;
             ArrayList<String> lines = new ArrayList<>();
 
@@ -198,50 +213,10 @@ public class WindowPresenter {
             }
             reader.close();
 
-//            Scanner scanner = new Scanner(model.getContent());
-//            long size =  model.getContent().lines().count(); //.split("\r\n|\r|\n").length;
-//            long count = 0;
-//            ArrayList<String> lines = new ArrayList<>();
-//
-//            while (scanner.hasNextLine()) {
-//                String line = scanner.nextLine();
-//                lines.add(line);
-//                count++;
-//                if (isCancelled()) return null;
-//                 updateProgress(count/size, size);
-//            }
-//            scanner.close();
-
             return lines;
         }
     }
 
-    private static void writePDB(WindowController controller, PDBFile model){
 
-        //TODO: better way? this hangs for long pdb files (eg '6ZP5')
-        //TODO: monospace currently defined in fxml, move to css once created
-            /*
-            .list-cell
-            {
-                -fx-font-family: "monospace";
-            }
-             */
-
-        var reader = new BufferedReader(new StringReader(model.getContent()));
-
-        long size = reader.lines().count(); // model.getContent().lines().split("\r\n|\r|\n").length;
-        long count = 0;
-        ObservableList<String> lines = FXCollections.observableArrayList();
-
-        Scanner scanner = new Scanner(model.getContent());
-
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            lines.add(line);
-            controller.getPdbText().getItems().add(line);
-            count++;
-        }
-        scanner.close();
-    }
 
 }
