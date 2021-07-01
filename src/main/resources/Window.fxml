@@ -57,7 +57,7 @@
                 <top>
                     <ToolBar BorderPane.alignment="CENTER">
                         <Slider fx:id="radiusScale" max="1.5" min="0.5" prefWidth="100.0" value="1.0" />
-                  <Slider fx:id="diameterScale" max="5.0" min="1.0" prefWidth="100.0" value="2.5" />
+                  <Slider fx:id="diameterScale" blockIncrement="50" max="10.0" min="1.0" prefWidth="100.0" value="5" />
                     <Pane HBox.hgrow="ALWAYS" />
                   <Separator orientation="VERTICAL" />
                   <Label nodeOrientation="LEFT_TO_RIGHT" text="Style" />
@@ -74,7 +74,7 @@
                 </bottom>
                 <center>
                     <StackPane BorderPane.alignment="CENTER">
-                        <Pane fx:id="centerPane" style="-fx-background-color: lightblue;" />
+                        <Pane fx:id="centerPane" style="-fx-background-color: TRANSPARENT;" />
                     </StackPane>
                 </center>
             </BorderPane>
