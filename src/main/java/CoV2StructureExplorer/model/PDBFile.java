@@ -52,7 +52,7 @@ public class PDBFile {
     // FIXME: use this.content and have one less arguments to hand over?
     public void savePDBFile(Path path) {
         try {
-            Files.writeString( Paths.get( path.toString() ,this.pdbID + ".pdb"), this.content);
+            Files.writeString( Paths.get( path.toString() ,this.pdbID + ".pdb"), this.content.toUpperCase());
         } catch (IOException e) {
             e.printStackTrace();
         }
