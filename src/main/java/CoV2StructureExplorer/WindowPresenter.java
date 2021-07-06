@@ -21,17 +21,15 @@ import java.util.Scanner;
 
 public class WindowPresenter {
 
-    private WindowPresenter() {}
+private WindowPresenter() {}
 
     private static PDBFile model;
+    private static viewPresenter view;
     static void setup(Stage stage, WindowController controller){ //, PDBFile model
 
-        // setup ChoiceBoxes
-        controller.getViewChoice().getItems().addAll("Spheres", "Spheres + Ribbon", "Ribbon", "Pseudo-Cartoon");
-        controller.getViewChoice().setValue("Spheres");
+        // setup ChoiceBox
         controller.getColorChoice().getItems().addAll("Atoms", "Structure", "Chains");
         controller.getColorChoice().setValue("Atoms");
-
 
         // show/hide modelSelection in visualisation tab, SimpleIntegerProperty updated via parse button
         var sizeModelChoiceSize = new SimpleIntegerProperty(controller.getModelChoice().getItems().size(), "sizeModelChoiceSize");
@@ -39,6 +37,8 @@ public class WindowPresenter {
         controller.getModelLabel().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
         controller.getModelChoice().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
         controller.getModelLabel().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
+        controller.getLoadModel().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
+        controller.getLoadModel().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
 
         // service to parse pdb file in background
         var service = new Service<ArrayList<String>>() {
@@ -48,20 +48,11 @@ public class WindowPresenter {
             }
         };
         service.setOnScheduled( v ->
-            clearAll(controller, model)
+            clearAll(controller)
         );
         service.setOnSucceeded(v -> {
             controller.getPdbText().setItems(FXCollections.observableArrayList(service.getValue()));
             controller.getPdbText().scrollTo(0);
-        });
-
-        // load new visualisation, clear only visualisation tab
-        //TODO: disable if nothing new selected to draw, alternatively: prevent unnecessary redraw (eg: no new spheres if already drawn and we want to add sticks)
-        controller.getDrawButton().setOnAction(e-> {
-            controller.getCenterPane().getChildren().clear();
-
-            // FIXME: ram seems to be increasing after multiple presses, see if you can motivate GC to do it's job
-            Visualization.setupVisualization(controller, model);
         });
 
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
@@ -82,7 +73,7 @@ public class WindowPresenter {
                 pdbCode = selection;
             }
 
-//            clearAll(controller, model);
+            clearAll(controller);
             model = new PDBFile(pdbCode);
 
             // populate model choice
@@ -92,12 +83,23 @@ public class WindowPresenter {
             }
             try {
                 controller.getModelChoice().setValue(controller.getModelChoice().getItems().get(0));
-            } catch (IndexOutOfBoundsException idxException){
+            } catch (Exception idxException){
                 //do nothing
             }
-//            writePDB(controller, model);
+
             sizeModelChoiceSize.setValue(controller.getModelChoice().getItems().size());
+
+//            writePDB(controller, model);
             service.restart();
+
+            view = new viewPresenter(controller, model);
+//            controller.getModelChoice().valueProperty().addListener(e2 -> {
+//                controller.getCenterPane().getChildren().clear();
+//                view.setupView(controller, model);
+//            });
+            controller.getInfoLabel().setText(model.getProtein().size() + " models found.");
+
+            controller.getAbstractContent().setText(model.getAbstractContent());
         });
 
         // Simple Button Listeners
@@ -113,6 +115,11 @@ public class WindowPresenter {
                         FXCollections.observableArrayList(
                                 PDBWeb.getPDBEntries(controller.getEntryField().getText())))
         );
+        controller.getLoadModel().setOnAction(e -> {
+            controller.getCenterPane().getChildren().clear();
+            // TODO: set up in a way that does not reset camera
+            view = new viewPresenter(controller, model);
+        });
 
 
         // Menu item Listeners
@@ -128,8 +135,9 @@ public class WindowPresenter {
             alert.showAndWait();
         });
         controller.getOpenMenu().setOnAction(e -> openPDB(stage,controller,model));
-        controller.getClearMenu().setOnAction(e -> clearAll(controller,model));
+        controller.getClearMenu().setOnAction(e -> clearAll(controller));
         controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
+        controller.getExitMenu().setOnAction(e-> System.exit(0));
     }
 
     private static void savePDB(Stage stage, WindowController controller, PDBFile model){
@@ -155,7 +163,6 @@ public class WindowPresenter {
                         info.showAndWait();
                     });
         }
-
     }
 
     private static void openPDB(Stage stage, WindowController controller, PDBFile model) {
@@ -167,13 +174,13 @@ public class WindowPresenter {
                 new FileChooser.ExtensionFilter("All Files", "*.*"));
         File selectedFile = fileChooser.showOpenDialog(stage);
         if (selectedFile != null) {
-            clearAll(controller, model);
+            clearAll(controller);
             model = new PDBFile(Path.of(selectedFile.getPath())); //Files.readString(Path.of(selectedFile.getPath()));
             writePDB(controller, model); //TODO: call service here
         }
     }
 
-    private static void clearAll(WindowController controller, PDBFile model) {
+    private static void clearAll(WindowController controller) {
         controller.getPdbText().getItems().clear();
         controller.getCenterPane().getChildren().clear();
     }
