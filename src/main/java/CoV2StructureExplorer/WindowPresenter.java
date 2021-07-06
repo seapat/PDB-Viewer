@@ -26,9 +26,12 @@ public class WindowPresenter {
     private static PDBFile model;
     static void setup(Stage stage, WindowController controller){ //, PDBFile model
 
-        // setup ChoiceBox
+        // setup ChoiceBoxes
         controller.getViewChoice().getItems().addAll("Spheres", "Spheres + Ribbon", "Ribbon", "Pseudo-Cartoon");
         controller.getViewChoice().setValue("Spheres");
+        controller.getColorChoice().getItems().addAll("Atoms", "Structure", "Chains");
+        controller.getColorChoice().setValue("Atoms");
+
 
         // show/hide modelSelection in visualisation tab, SimpleIntegerProperty updated via parse button
         var sizeModelChoiceSize = new SimpleIntegerProperty(controller.getModelChoice().getItems().size(), "sizeModelChoiceSize");
@@ -56,6 +59,8 @@ public class WindowPresenter {
         //TODO: disable if nothing new selected to draw, alternatively: prevent unnecessary redraw (eg: no new spheres if already drawn and we want to add sticks)
         controller.getDrawButton().setOnAction(e-> {
             controller.getCenterPane().getChildren().clear();
+
+            // FIXME: ram seems to be increasing after multiple presses, see if you can motivate GC to do it's job
             Visualization.setupVisualization(controller, model);
         });
 
@@ -108,6 +113,7 @@ public class WindowPresenter {
                         FXCollections.observableArrayList(
                                 PDBWeb.getPDBEntries(controller.getEntryField().getText())))
         );
+
 
         // Menu item Listeners
         controller.getAboutMenu().setOnAction(e -> {
