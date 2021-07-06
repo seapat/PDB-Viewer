@@ -22,6 +22,8 @@ import java.util.Comparator;
 
 public class Visualization {
 
+    // TODO make this a task so it can run in the background?
+
     private static SubScene subScene;
     private static WindowController controller;
     private static PDBFile model;
@@ -32,15 +34,15 @@ public class Visualization {
     private static double minX;
     private static double minY;
     private static double minZ;
-//    private static double avgX;
-//    private static double avgY;
-//    private static double avgZ;
     private static Pane pane;
     private static Camera camera;
     private static double x ;
     private static double y ;
 
         private Visualization(){}
+
+        // TODO: best would be to rewrite this as fully static with no class variable, rather return stuff to main presenter
+        //  also save min and max vars in PDBFile and access them via getters
 
         public static void setupVisualization(WindowController controller, PDBFile model) {
             Visualization.controller = controller;
@@ -50,15 +52,14 @@ public class Visualization {
             subScene.widthProperty().bind(controller.getCenterPane().widthProperty());
             subScene.heightProperty().bind(controller.getCenterPane().heightProperty());
             var t1 = System.nanoTime();
+
+            // FIXME: MAYBE write this as a sinlge loop over all atoms? might be faster overall
             Visualization.maxX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).max(Double::compare).orElse(0d);
             Visualization.maxY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).max(Double::compare).orElse(0d);
             Visualization.maxZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).max(Double::compare).orElse(0d);
             Visualization.minX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).min(Double::compare).orElse(0d);
             Visualization.minY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).min(Double::compare).orElse(0d);
             Visualization.minZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).min(Double::compare).orElse(0d);
-//            Visualization.avgX = figure.getChildren().stream().map(x -> x.translateXProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);
-//            Visualization.avgY = figure.getChildren().stream().map(y -> y.translateYProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);
-//            Visualization.avgZ = figure.getChildren().stream().map(z -> z.translateZProperty().getValue()).mapToDouble(Double::doubleValue).average().orElse(0d);
             Visualization.pane = controller.getCenterPane();
             Visualization.camera = setupCamera();
             subScene.setCamera(camera);
@@ -70,6 +71,7 @@ public class Visualization {
 
     // TODO: instead of center camera and rotation, translate atom by x y z
 
+
     public static Group loadView(){
         final Group figure;
         String choice = controller.getViewChoice().getValue();
@@ -78,9 +80,14 @@ public class Visualization {
                     controller.getDiameterScale().valueProperty(),
                     controller.getModelChoice().getValue());
             case "Spheres + Ribbon" -> {
+                // FIXME: maybe add these separately to the subscene? void method no return, would need to deal with camera
                 var balls = new Balls(model.getProtein(),
                         controller.getRadiusScale().valueProperty(),
-                        controller.getModelChoice().getValue());
+                        controller.getModelChoice().getValue(),
+                        controller.getColorChoice().getValue());
+                controller.getColorChoice().valueProperty().addListener( e ->
+                        balls.changeColor( controller.getColorChoice().getValue())
+                );
                 var sticks = new Sticks(model.getProtein(),
                         controller.getDiameterScale().valueProperty(),
                         controller.getModelChoice().getValue());
@@ -88,10 +95,19 @@ public class Visualization {
                 figure = balls;
             }
             case "Pseudo-Cartoon" -> figure = new Mesh();
-            default -> figure = new Balls(model.getProtein(),
-                    controller.getRadiusScale().valueProperty(),
-                    controller.getModelChoice().getValue());
+            default -> {
+                var balls = new Balls(model.getProtein(),
+                        controller.getRadiusScale().valueProperty(),
+                        controller.getModelChoice().getValue(),
+                        controller.getColorChoice().getValue());
+                controller.getColorChoice().valueProperty().addListener( e ->
+                        balls.changeColor( controller.getColorChoice().getValue())
+                );
+                figure = balls;
+            }
+
         }
+
         return figure;
     }
 
@@ -116,9 +132,10 @@ public class Visualization {
 
         controller.getCenterPane().setOnScroll((ScrollEvent e) -> {
             var curr = camera.getTranslateZ();
-            camera.setTranslateZ(curr + (e.getDeltaY() * Math.abs(minZ*0.005)));
-        });
 
+            // TODO: maybe remove the e.delta so that is always scrolls the same, no matter how aggressive you tread your mouse
+            camera.setTranslateZ(curr +  (Math.abs(Math.max(minZ, maxZ)*0.005) + 1)); // (e.getDeltaY() * )
+        });
 
         return camera;
     }
@@ -142,7 +159,6 @@ public class Visualization {
             rotate.setPivotX((maxX + minX) / 2);
             rotate.setPivotY((maxY + minY) / 2);
             rotate.setPivotZ((maxZ + minZ) / 2);
-
 
             figureTransformProperty.setValue(rotate.createConcatenation(figureTransformProperty.getValue()));
             x = e.getSceneX();

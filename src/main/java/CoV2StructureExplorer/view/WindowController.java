@@ -6,6 +6,8 @@ import javafx.scene.layout.Pane;
 
 public class WindowController {
 
+    @FXML
+    private ChoiceBox<String> colorChoice;
 
     @FXML
     private Label modelLabel;
@@ -203,5 +205,13 @@ public class WindowController {
 
     public void setDiameterScale(Slider diameterScale) {
         this.diameterScale = diameterScale;
+    }
+
+    public ChoiceBox<String> getColorChoice() {
+        return colorChoice;
+    }
+
+    public void setColorChoice(ChoiceBox<String> colorChoice) {
+        this.colorChoice = colorChoice;
     }
 }
