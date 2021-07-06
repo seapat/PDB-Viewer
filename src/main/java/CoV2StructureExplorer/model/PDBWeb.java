@@ -25,7 +25,7 @@ public class PDBWeb {
         try {
             var url = new URL("https://data.rcsb.org/rest/v1/holdings/current/entry_ids");
             var reader = Json.createReader(getFromURL(url));
-            return new ArrayList<String>(reader.readArray().stream()
+            return new ArrayList<>(reader.readArray().stream()
                     .map(JsonValue::toString)
                     // strings are enclosed by "-signs twice because Json
                     .map(s -> s.replace("\"", ""))
@@ -33,7 +33,7 @@ public class PDBWeb {
                     .toList());
         } catch (MalformedURLException e) {
             e.printStackTrace();
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
 
     }
@@ -72,7 +72,7 @@ public class PDBWeb {
                     "6ZP1", "6ZP0", "6ZP2", "5R84", "5R83", "5R7Y", "5R80", "5R82", "5R81", "5R8T", "5R7Z", "5REA", "5REC", "MULTIPLE MODLES:", "5jxv"));
         }
         try {
-            var hits = pdbEntries.stream().filter(s -> ((String)s).startsWith(query.toUpperCase())).toList();
+            var hits = pdbEntries.stream().filter(s -> s.startsWith(query.toUpperCase())).toList();
             if (hits.isEmpty()) {
                 hits = new ArrayList<>() {{
                     add("Nothing Found");
@@ -97,8 +97,28 @@ public class PDBWeb {
         }
     }
 
+    protected static String getAbstract(String pdbID) {
+        try {
+            var code = pdbID.toLowerCase();
+            var url = new URL("https://data.rcsb.org/rest/v1/core/pubmed/" + code); //"https://data.rcsb.org/rest/v1/core/polymer_entity/"+ code + "/1"
 
+            var content = Json.createReader(getFromURL(url)).read();
+//            var content = reader.read();
+            var text = content.getValue("/rcsb_pubmed_abstract_text").toString();
+            var address = content.getValue("/rcsb_pubmed_affiliation_info").toString()
+                    .replaceAll("([a-zA-Z0-9+._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z0-9_-]+)", "")
+                    .replace("[", "").replace("]", "")
+                    ;
+            var doi = content.getValue("/rcsb_pubmed_doi").toString();
 
+            return ("Abstract \n" + text + "\n\nAddress: \t" + address  + "\nDOI: \t" + doi).replace("\"", "");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("No Abstract Available");
+            return "No Abstract Available";
+        }
+    }
 
     public static ArrayList<String> getPDBEntries() {
         return pdbEntries;

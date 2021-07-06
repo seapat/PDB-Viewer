@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-
 public class PDBFile {
     /*
     Right now, handles IO for pdb files, also serves as container for Protein structure and file content
@@ -20,6 +19,7 @@ public class PDBFile {
     private final String pdbID;
     private final String content;
     private final Structure structure;
+    private final String abstractContent;
 
     // get via code from pdb
     public PDBFile(String pdbID) {
@@ -27,6 +27,7 @@ public class PDBFile {
 
         //FIXME: this method is protected instead of private to allow access from here, good idea?
         this.content = PDBWeb.getPDBString(this.pdbID);
+        this.abstractContent = PDBWeb.getAbstract(this.pdbID);
 
         this.structure = new PDBParser(pdbID, this.content).getStructure();
     }
@@ -37,6 +38,7 @@ public class PDBFile {
         this.pdbID = filename.substring(0, filename.lastIndexOf('.'));
         this.content = getPDBString(path);
         this.structure = new PDBParser(pdbID,this.content).getStructure();
+        this.abstractContent = "Load via pdb code to see this";
     }
 
     private static String getPDBString(Path path) {
@@ -70,4 +72,7 @@ public class PDBFile {
         return this.structure;
     }
 
+    public String getAbstractContent() {
+        return abstractContent;
+    }
 }
