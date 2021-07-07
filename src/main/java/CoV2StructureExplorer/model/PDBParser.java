@@ -248,10 +248,10 @@ public class PDBParser {
 - 1 file == 1 Structure
 - MODEL record separates atoms of different models (coords of models differ)
     - not present when file only contains one CoV2StructureExplore.CoV2StructureExplorer.model !!!
-    - if line.startswith("MODEL"): append current CoV2StructureExplore.CoV2StructureExplorer.model and create new one
+    - if line.startsWith("MODEL"): append current CoV2StructureExplore.CoV2StructureExplorer.model and create new one
     - ENDMDL denotes end of a CoV2StructureExplore.CoV2StructureExplorer.model
 - TER records denotes <END> of a chain
-    - if line.startswith("TER") return chain;
+    - if line.startsWith("TER") return chain;
 - ATOM denotes single Atom of a residue
     - 13 - 16 denotes Atom code
     - 7-11 denotes id
