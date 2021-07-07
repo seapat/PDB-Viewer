@@ -28,7 +28,7 @@ private WindowPresenter() {}
     public static void setup(Stage stage, WindowController controller){ //, PDBFile model
 
         // setup ChoiceBox
-        controller.getColorChoice().getItems().addAll("Atoms", "Structure", "Chains");
+        controller.getColorChoice().getItems().addAll("Atoms", "Structure", "Chains", "Residue");
         controller.getColorChoice().setValue("Atoms");
 
         // show/hide modelSelection in visualisation tab, SimpleIntegerProperty updated via parse button

@@ -93,7 +93,8 @@ public class Balls extends Group {
     public void changeColor(String colorChoice){
 
         Character lastChain = null;
-        Color chainColor = iterateChainColors.next();
+        Residue lastResidue = null;
+        Color currIterColor = iterateChainColors.next();
         for (var atomSphere : atomSpheres){
             var atom = atomSphere.getKey();
             var sphere = atomSphere.getValue();
@@ -104,19 +105,21 @@ public class Balls extends Group {
             }
 
             // go to next chain
-            if (lastChain != null &&  lastChain !=  atom.getChain()) {
-                chainColor = iterateChainColors.next();
+            if ((colorChoice.equals("Structure") && lastChain != null && lastChain != atom.getChain()) || 
+                    (colorChoice.equals("Residue") && lastResidue != null && !lastResidue.equals(atom.getResidue()))) {
+                currIterColor = iterateChainColors.next();
             }
 
             Color color;
             switch (colorChoice){
                 case "Structure" -> color = secStrucColors.getOrDefault(atom.getStructureType().toString(), Color.PLUM);
-                case "Chains" -> color = chainColor;
+                case "Chains", "Residue" -> color = currIterColor;
                 default -> color = atomColors.getOrDefault(atom.getSimpleType(), Color.PLUM);
             }
             sphere.setMaterial(new PhongMaterial(color));
 
             lastChain = atom.getChain();
+            lastResidue = atom.getResidue();
         }
         // reset color choices, make coloring reproducible
         iterateChainColors = chainColors.iterator();
