@@ -79,7 +79,8 @@
                 </bottom>
                 <center>
                     <StackPane BorderPane.alignment="CENTER">
-                        <Pane fx:id="centerPane" style="-fx-background-color: TRANSPARENT;" />
+                  <Pane fx:id="selectionPane" mouseTransparent="true" prefHeight="200.0" prefWidth="200.0" />
+                        <Pane fx:id="figurePane" style="-fx-background-color: TRANSPARENT;" />
                     </StackPane>
                 </center>
             </BorderPane>

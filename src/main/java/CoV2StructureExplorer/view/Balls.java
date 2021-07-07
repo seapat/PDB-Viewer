@@ -1,6 +1,8 @@
 package CoV2StructureExplorer.view;
 
+import CoV2StructureExplorer.selection.SetSelectionModel;
 import CoV2StructureExplorer.model.Atom;
+import CoV2StructureExplorer.model.Residue;
 import CoV2StructureExplorer.model.Structure;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.scene.Group;
@@ -13,8 +15,17 @@ import java.util.*;
 
 public class Balls extends Group {
 
-    //sphere.setdrawMode(DrawMode.LINE) to see mesh used for drawing
+    //sphere.setDrawMode(DrawMode.LINE) to see mesh used for drawing
 
+    public ArrayList<Pair<Atom, Sphere>> getAtomSpheres() {
+        return atomSpheres;
+    }
+
+    public HashMap<Residue, ArrayList<Sphere>> getResidueSpheres() {
+        return residueSpheres;
+    }
+
+    private final HashMap<Residue, ArrayList<Sphere>> residueSpheres = new HashMap<>();
     private final ArrayList<Pair<Atom, Sphere>> atomSpheres = new ArrayList<>();
     private final static Map<Object, Color> atomColors = Map.ofEntries(
             // single bonded radii found on wikipedia "covalent radius"
@@ -25,6 +36,7 @@ public class Balls extends Group {
             new AbstractMap.SimpleEntry<>('P', Color.ORANGE),
             new AbstractMap.SimpleEntry<>('H', Color.WHITE)
     );
+
 
     private final static Map<Object, Color> secStrucColors = Map.ofEntries(
             // is it ok to check for Enums here which are declared in the model? maybe
@@ -40,14 +52,7 @@ public class Balls extends Group {
     )));
     private static Iterator<Color> iterateChainColors = chainColors.iterator();
 
-    public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice, String colorChoice){
-
-        createSpheres(pdb, radiusScale, modelChoice, colorChoice);
-
-        System.out.println("balls: " + this.getChildren().size());
-    }
-
-    private void createSpheres (Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice, String colorChoice){
+    public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice, String colorChoice, WindowController controller, SetSelectionModel<Residue> selectedAtoms){
 
         for (var chain: pdb.get(modelChoice -1 )){
             if (!iterateChainColors.hasNext()) {
@@ -55,25 +60,34 @@ public class Balls extends Group {
             }
 
             for (var residue: chain) {
-
+                var spheres = new ArrayList<Sphere>();
                 for (var atom: residue) {
                     final Sphere sphere = new Sphere(100, 32);
 
-                    sphere.setTranslateX(100 * atom.getPosition().x());
-                    sphere.setTranslateY(100 * atom.getPosition().y());
-                    sphere.setTranslateZ(100 * atom.getPosition().z());
+                    sphere.setTranslateX((int)(100 * atom.getPosition().x()));
+                    sphere.setTranslateY((int)(100 * atom.getPosition().y()));
+                    sphere.setTranslateZ((int)(100 * atom.getPosition().z()));
 
                     sphere.radiusProperty().bind(radiusScale.multiply(atom.getRadius()));
 
-                    changeColor(colorChoice);
+                    // TODO: add this once selection is done / no more errors, do this for residues instead... perhaps make a group?
+                    sphere.setOnMouseClicked(e -> {
+                        if (!e.isShiftDown()) { selectedAtoms.clearSelection(); }
+                        selectedAtoms.select(residue);
+                        System.out.println("clicking is recognized");
+                        System.out.println(selectedAtoms.getSelectedItems());
+                    });
 
                     // Add twice, once to scene graph, other time to the hashmap to access subsets of spheres
                     getChildren().add(sphere);
                     atomSpheres.add(new Pair<>(atom, sphere));
+                    spheres.add(sphere);
                 }
+                residueSpheres.putIfAbsent(residue, spheres);
             }
         }
-
+        changeColor(colorChoice);
+        System.out.println("balls: " + this.getChildren().size());
     }
 
     public void changeColor(String colorChoice){
@@ -107,5 +121,4 @@ public class Balls extends Group {
         // reset color choices, make coloring reproducible
         iterateChainColors = chainColors.iterator();
     }
-
 }

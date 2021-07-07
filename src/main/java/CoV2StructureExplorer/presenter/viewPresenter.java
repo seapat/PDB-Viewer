@@ -1,6 +1,9 @@
-package CoV2StructureExplorer;
+package CoV2StructureExplorer.presenter;
 
+import CoV2StructureExplorer.selection.SelectionDots;
+import CoV2StructureExplorer.selection.SetSelectionModel;
 import CoV2StructureExplorer.model.PDBFile;
+import CoV2StructureExplorer.model.Residue;
 import CoV2StructureExplorer.view.Balls;
 import CoV2StructureExplorer.view.Sticks;
 import CoV2StructureExplorer.view.WindowController;
@@ -30,14 +33,13 @@ public class viewPresenter {
     viewPresenter(WindowController controller, PDBFile model){
         this.figure = setupView(controller, model);
         SubScene subScene = new SubScene(this.figure, 800, 800, true, SceneAntialiasing.DISABLED);
-        subScene.widthProperty().bind(controller.getCenterPane().widthProperty());
-        subScene.heightProperty().bind(controller.getCenterPane().heightProperty());
+        subScene.widthProperty().bind(controller.getFigurePane().widthProperty());
+        subScene.heightProperty().bind(controller.getFigurePane().heightProperty());
 
         setupRotation(controller);
         subScene.setCamera(setupCamera(controller));
 
-        controller.getCenterPane().getChildren().add(subScene);
-
+        controller.getFigurePane().getChildren().add(subScene);
     }
 
     protected Group setupView(WindowController controller, PDBFile model) {
@@ -51,16 +53,28 @@ public class viewPresenter {
         sticks.setVisible(false);
         sticks.visibleProperty().bind(controller.getBondsChecked().selectedProperty());
 
+        SetSelectionModel<Residue> selectedAtoms =  new SetSelectionModel<Residue>();
         var balls = new Balls(model.getProtein(),
                 controller.getRadiusScale().valueProperty(),
                 controller.getModelChoice().getValue(),
                 controller.getColorChoice().getValue(),
-                controller
+                controller,
+                selectedAtoms
         );
         balls.setVisible(false);
         balls.visibleProperty().bind(controller.getAtomsChecked().selectedProperty());
+        SelectionDots.setup(controller.getSelectionPane(), selectedAtoms, residue -> {
 
-        // FIXME: MAYBE write this as a single loop over all atoms? might be faster overall
+            System.out.println("Lambda is executed");
+            return balls.getResidueSpheres().get(residue);
+//            var selected = List.of();
+//            selectedAtoms.getSelectedItems().forEach(atom -> selected.add(atom));
+//            for (var atom : selectedAtoms.getSelectedItems()) {
+//                if (atom.equals(x))
+//            }
+        }, balls.layoutXProperty(), balls.layoutYProperty());
+
+        // FIXME: Maybe write this as a single loop over all atoms? might be faster overall
         this.maxX = balls.getChildren().stream().map(x -> x.translateXProperty().getValue()).max(Double::compare).orElse(0d);
         this.maxY = balls.getChildren().stream().map(y -> y.translateYProperty().getValue()).max(Double::compare).orElse(0d);
         this.maxZ = balls.getChildren().stream().map(z -> z.translateZProperty().getValue()).max(Double::compare).orElse(0d);
@@ -96,10 +110,9 @@ public class viewPresenter {
         System.out.println("maxZ " + this.maxZ);
         System.out.println("minZ " + this.minZ);
 
-        controller.getCenterPane().setOnScroll((ScrollEvent e) -> {
+        controller.getFigurePane().setOnScroll((ScrollEvent e) -> {
             var curr = camera.getTranslateZ();
 
-            // TODO: maybe remove the e.delta so that is always scrolls the same, no matter how aggressive you tread your mouse
             camera.setTranslateZ(curr + (e.getDeltaY() / Math.abs(e.getDeltaY())) * (Math.abs(maxFromCenter * 0.1) + 1));
             // (e.getDeltaY() * (Math.abs(Math.max(minZ, maxZ)*0.005) + 1)))
         });
@@ -109,9 +122,11 @@ public class viewPresenter {
 
     private double x = 0;
     private double y = 0;
+
+    // TODO: disable rotation if not everything hidden
     public void setupRotation(WindowController controller) {
 
-        var pane = controller.getCenterPane();
+        var pane = controller.getFigurePane();
 
         Property<Transform> figureTransformProperty = new SimpleObjectProperty<>(new Rotate());
         figureTransformProperty.addListener((v, o, n) -> this.figure.getTransforms().setAll(n));

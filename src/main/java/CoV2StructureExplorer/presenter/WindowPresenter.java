@@ -1,4 +1,4 @@
-package CoV2StructureExplorer;
+package CoV2StructureExplorer.presenter;
 
 import CoV2StructureExplorer.model.PDBFile;
 import CoV2StructureExplorer.model.PDBWeb;
@@ -25,7 +25,7 @@ private WindowPresenter() {}
 
     private static PDBFile model;
     private static viewPresenter view;
-    static void setup(Stage stage, WindowController controller){ //, PDBFile model
+    public static void setup(Stage stage, WindowController controller){ //, PDBFile model
 
         // setup ChoiceBox
         controller.getColorChoice().getItems().addAll("Atoms", "Structure", "Chains");
@@ -99,8 +99,9 @@ private WindowPresenter() {}
 //            });
             controller.getInfoLabel().setText(model.getProtein().size() + " models found.");
 
-            controller.getAbstractContent().setText(model.getAbstractContent());
+            controller.getAbstractContent().setText(fillReportTab());
         });
+
 
         // Simple Button Listeners
         controller.getClearSearchButton().disableProperty().bind(controller.getEntryField().textProperty().isEmpty());
@@ -116,7 +117,7 @@ private WindowPresenter() {}
                                 PDBWeb.getPDBEntries(controller.getEntryField().getText())))
         );
         controller.getLoadModel().setOnAction(e -> {
-            controller.getCenterPane().getChildren().clear();
+            controller.getFigurePane().getChildren().clear();
             // TODO: set up in a way that does not reset camera
             view = new viewPresenter(controller, model);
         });
@@ -138,6 +139,18 @@ private WindowPresenter() {}
         controller.getClearMenu().setOnAction(e -> clearAll(controller));
         controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
         controller.getExitMenu().setOnAction(e-> System.exit(0));
+    }
+
+    private static String fillReportTab() {
+        var content = new StringBuilder(model.getAbstractContent());
+        content.append("\n\nChains:\n");
+        model.getChainSequences().forEach((chain, seq) ->
+                content.append(chain.getChainID())
+                        .append(": \n")
+                        .append(seq)
+                        .append("\n")
+        );
+        return content.toString();
     }
 
     private static void savePDB(Stage stage, WindowController controller, PDBFile model){
@@ -182,7 +195,7 @@ private WindowPresenter() {}
 
     private static void clearAll(WindowController controller) {
         controller.getPdbText().getItems().clear();
-        controller.getCenterPane().getChildren().clear();
+        controller.getFigurePane().getChildren().clear();
     }
 
     private static void writePDB(WindowController controller, PDBFile model){

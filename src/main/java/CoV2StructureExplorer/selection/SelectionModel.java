@@ -1,11 +1,10 @@
-package CoV2StructureExplorer;
+package CoV2StructureExplorer.selection;
 
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 
 import java.util.Collection;
 
-public interface SelectionModel<T> {
+public interface SelectionModel<T>  {
 
     boolean select(T t);
     boolean setSelected(T t, boolean select);
@@ -15,6 +14,6 @@ public interface SelectionModel<T> {
     boolean clearSelection(T t);
     boolean setSelection(Collection<T> list);
 
-    ObservableSet<T> getSelectedItems();
+    ObservableSet<T> getSelectedItems(); //key thing to monitor set of items
 
 }

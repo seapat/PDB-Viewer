@@ -7,6 +7,9 @@ import javafx.scene.layout.Pane;
 public class WindowController {
 
     @FXML
+    private Pane selectionPane;
+
+    @FXML
     private Button loadModel;
 
     @FXML
@@ -43,7 +46,7 @@ public class WindowController {
     private Label infoLabel;
 
     @FXML
-    private Pane centerPane;
+    private Pane figurePane;
 
     @FXML
     private ListView<String> pdbCodeList;
@@ -112,8 +115,8 @@ public class WindowController {
         return infoLabel;
     }
 
-    public Pane getCenterPane() {
-        return centerPane;
+    public Pane getFigurePane() {
+        return figurePane;
     }
 
     public Slider getRadiusScale() {
@@ -158,5 +161,9 @@ public class WindowController {
 
     public Button getLoadModel() {
         return loadModel;
+    }
+
+    public Pane getSelectionPane() {
+        return selectionPane;
     }
 }

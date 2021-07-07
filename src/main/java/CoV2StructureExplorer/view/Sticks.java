@@ -7,15 +7,13 @@ import javafx.geometry.Point3D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.CullFace;
 import javafx.scene.shape.Cylinder;
-import javafx.scene.shape.DrawMode;
 
 import java.util.HashSet;
 
 public class Sticks extends Group {
 
-    public Sticks(Structure pdb, ReadOnlyDoubleProperty diameterScale, Integer modelChoice){
+    public Sticks(Structure pdb, ReadOnlyDoubleProperty diameterScale, Integer modelChoice, WindowController controller){
 
         var bonds = new HashSet<MyPair<Atom.Position, Atom.Position>>();
         for (var chain: pdb.get(modelChoice -1 )) {
@@ -53,7 +51,6 @@ public class Sticks extends Group {
             cylinder.setMaterial(material);
 
             cylinder.radiusProperty().bind(diameterScale.multiply(cylinder.getRadius()));
-
             getChildren().add(cylinder);
 
         }
