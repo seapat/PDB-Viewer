@@ -111,7 +111,7 @@ public class PDBWeb {
                     ;
             var doi = content.getValue("/rcsb_pubmed_doi").toString();
 
-            return ("Abstract \n" + text + "\n\nAddress: \t" + address  + "\nDOI: \t" + doi).replace("\"", "");
+            return ("Abstract: \n" + text + "\n\nAddress: \t" + address  + "\nDOI: \t" + doi).replace("\"", "");
 
         } catch (IOException e) {
             e.printStackTrace();

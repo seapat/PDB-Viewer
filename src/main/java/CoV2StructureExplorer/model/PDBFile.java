@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 public class PDBFile {
     /*
@@ -20,6 +21,21 @@ public class PDBFile {
     private final String content;
     private final Structure structure;
     private final String abstractContent;
+    private HashMap<Chain, String> chainSequences;
+
+    private HashMap<Chain, String> parseSequences(){
+
+        var sequenceMap = new HashMap<Chain, String>();
+
+        for (var chain: this.structure.get(0)) {
+            var sequence = new StringBuilder();
+            for (var residue : chain) {
+                    sequence.append(residue.getOneLetter());
+            }
+            sequenceMap.putIfAbsent(chain, sequence.toString());
+        }
+        return sequenceMap;
+    }
 
     // get via code from pdb
     public PDBFile(String pdbID) {
@@ -30,6 +46,7 @@ public class PDBFile {
         this.abstractContent = PDBWeb.getAbstract(this.pdbID);
 
         this.structure = new PDBParser(pdbID, this.content).getStructure();
+        this.chainSequences = parseSequences();
     }
 
     // load locally
@@ -74,5 +91,9 @@ public class PDBFile {
 
     public String getAbstractContent() {
         return abstractContent;
+    }
+
+    public HashMap<Chain, String> getChainSequences() {
+        return chainSequences;
     }
 }
