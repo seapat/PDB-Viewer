@@ -1,6 +1,6 @@
 package CoV2StructureExplorer;
 
-import CoV2StructureExplorer.model.PDBFile;
+import CoV2StructureExplorer.presenter.WindowPresenter;
 import CoV2StructureExplorer.view.Window;
 import javafx.application.Application;
 import javafx.scene.Scene;
