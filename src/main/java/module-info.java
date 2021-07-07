@@ -8,6 +8,8 @@ module CoV2StructureExplorer {
 
     exports CoV2StructureExplorer.model;
     exports CoV2StructureExplorer.view;
+    exports CoV2StructureExplorer.selection;
+    exports CoV2StructureExplorer.presenter;
     exports CoV2StructureExplorer;
 //    opens CoV2StructureExplorer to javafx.fxml;
 }
