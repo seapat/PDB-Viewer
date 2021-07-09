@@ -18,7 +18,7 @@ import java.util.function.Function;
 // SELECTION
 public class SelectionDots<T> {
 
-    public static<T> void setup(Pane selectionPane , SetSelectionModel<T> selectionModel ,
+    public static<T> void setup(Pane selectionPane , SetSelectionModel<T> selectionModel , //SetSelectionModel<T> selectionModel
                                  Function<T, List<? extends Shape3D>> itemToDots, Property ...properties ) {
         var shapeDots = new HashMap<Shape3D, Rectangle>( );
 

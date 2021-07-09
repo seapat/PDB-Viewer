@@ -1,5 +1,6 @@
 package CoV2StructureExplorer.presenter;
 
+import CoV2StructureExplorer.model.Atom;
 import CoV2StructureExplorer.selection.SelectionDots;
 import CoV2StructureExplorer.selection.SetSelectionModel;
 import CoV2StructureExplorer.model.PDBFile;
@@ -53,7 +54,7 @@ public class ViewPresenter {
         sticks.setVisible(false);
         sticks.visibleProperty().bind(controller.getBondsChecked().selectedProperty());
 
-        SetSelectionModel<Residue> selectedAtoms =  new SetSelectionModel<Residue>();
+        SetSelectionModel<Atom> selectedAtoms =  new SetSelectionModel<>();
         var balls = new Balls(model.getProtein(),
                 controller.getRadiusScale().valueProperty(),
                 controller.getModelChoice().getValue(),
@@ -67,16 +68,7 @@ public class ViewPresenter {
         // SELECTION
         SelectionDots.setup(controller.getSelectionPane(), selectedAtoms, residue -> {
             System.out.println("Lambda is executed");
-            return balls.getResidueSpheres().get(residue); // TODO: add spheres individually currently : [[stuff]]
-            // TODO: it seems that this creates a nested list in the selection model,
-            //  maybe the listener is not triggered because the parent list never changes
-
-
-//            var selected = List.of();
-//            selectedAtoms.getSelectedItems().forEach(atom -> selected.add(atom));
-//            for (var atom : selectedAtoms.getSelectedItems()) {
-//                if (atom.equals(x))
-//            }
+            return balls.getResidueSpheres().get(residue);
         }, balls.layoutXProperty(), balls.layoutYProperty());
 
         // FIXME: Maybe write this as a single loop over all atoms? might be faster overall

@@ -54,7 +54,7 @@ public class Balls extends Group {
     )));
     private static Iterator<Color> iterateChainColors = chainColors.iterator();
 
-    public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice, String colorChoice, WindowController controller, SetSelectionModel<Residue> selectedAtoms){
+    public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice, String colorChoice, WindowController controller, SetSelectionModel<Atom> selectedAtoms){
 
         for (var chain: pdb.get(modelChoice -1 )){
             if (!iterateChainColors.hasNext()) {
@@ -75,7 +75,8 @@ public class Balls extends Group {
                     // SELECTION
                     sphere.setOnMouseClicked(e -> {
                         if (!e.isShiftDown()) { selectedAtoms.clearSelection(); }
-                        selectedAtoms.select(residue);
+                        residue.forEach(atomSpehre -> selectedAtoms.select(atomSpehre));
+                        ;
                         System.out.println("clicking is recognized");
                         System.out.println(selectedAtoms.getSelectedItems());
                     });
