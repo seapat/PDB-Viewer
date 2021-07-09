@@ -6,6 +6,7 @@ import javafx.collections.ObservableSet;
 import java.util.Collection;
 import java.util.HashSet;
 
+// SELECTION
 public class SetSelectionModel<T> implements SelectionModel<T> {
 
     private ObservableSet<T> selectedObjects = FXCollections.observableSet(new HashSet<>());

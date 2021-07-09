@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Map;
 
 public class PDBFile {
     /*
@@ -20,7 +21,17 @@ public class PDBFile {
     private final String pdbID;
     private final String content;
     private final Structure structure;
-    private final String abstractContent;
+    private final String abstractText;
+
+    public Structure getStructure() {
+        return structure;
+    }
+
+    public HashMap<String, Map<String, Integer>> getAaComposition() {
+        return aaComposition;
+    }
+
+    private final HashMap<String, Map<String, Integer>> aaComposition;
     private HashMap<Chain, String> chainSequences;
 
     private HashMap<Chain, String> parseSequences(){
@@ -43,9 +54,12 @@ public class PDBFile {
 
         //FIXME: this method is protected instead of private to allow access from here, good idea?
         this.content = PDBWeb.getPDBString(this.pdbID);
-        this.abstractContent = PDBWeb.getAbstract(this.pdbID);
+        this.abstractText = PDBWeb.getAbstract(this.pdbID);
 
-        this.structure = new PDBParser(pdbID, this.content).getStructure();
+        var parser = new PDBParser(pdbID, this.content);
+        this.structure = parser.getStructure();
+        this.aaComposition = parser.getAaCompositionPerChain();
+
         this.chainSequences = parseSequences();
     }
 
@@ -54,8 +68,10 @@ public class PDBFile {
         String filename = path.getFileName().toString();
         this.pdbID = filename.substring(0, filename.lastIndexOf('.'));
         this.content = getPDBString(path);
-        this.structure = new PDBParser(pdbID,this.content).getStructure();
-        this.abstractContent = "Load via pdb code to see this";
+        var parser = new PDBParser(pdbID, this.content);
+        this.structure = parser.getStructure();
+        this.aaComposition = parser.getAaCompositionPerChain();
+        this.abstractText = "Load via pdb code to see this";
     }
 
     private static String getPDBString(Path path) {
@@ -89,8 +105,8 @@ public class PDBFile {
         return this.structure;
     }
 
-    public String getAbstractContent() {
-        return abstractContent;
+    public String getAbstractText() {
+        return abstractText;
     }
 
     public HashMap<Chain, String> getChainSequences() {

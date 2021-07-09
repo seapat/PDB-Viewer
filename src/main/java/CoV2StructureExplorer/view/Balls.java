@@ -15,6 +15,8 @@ import java.util.*;
 
 public class Balls extends Group {
 
+    // TODO: Anchorpane to set up legend for colors
+
     //sphere.setDrawMode(DrawMode.LINE) to see mesh used for drawing
 
     public ArrayList<Pair<Atom, Sphere>> getAtomSpheres() {
@@ -70,7 +72,7 @@ public class Balls extends Group {
 
                     sphere.radiusProperty().bind(radiusScale.multiply(atom.getRadius()));
 
-                    // TODO: add this once selection is done / no more errors, do this for residues instead... perhaps make a group?
+                    // SELECTION
                     sphere.setOnMouseClicked(e -> {
                         if (!e.isShiftDown()) { selectedAtoms.clearSelection(); }
                         selectedAtoms.select(residue);
@@ -83,6 +85,7 @@ public class Balls extends Group {
                     atomSpheres.add(new Pair<>(atom, sphere));
                     spheres.add(sphere);
                 }
+                System.out.println(spheres);
                 residueSpheres.putIfAbsent(residue, spheres);
             }
         }
@@ -91,6 +94,8 @@ public class Balls extends Group {
     }
 
     public void changeColor(String colorChoice){
+
+        //TODO: color rna/dna differently than coil, maybe in parser add new type?
 
         Character lastChain = null;
         Residue lastResidue = null;

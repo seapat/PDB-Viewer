@@ -2,13 +2,15 @@ package CoV2StructureExplorer.model;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
 public class PDBParser {
 
-    static final double BOND_TOLERANCE = 1.1;
+
     /*
     Reads the content of .pdb files.
     A single reader object is created for the instance of the class, lines are progressed from various methods.
@@ -23,23 +25,9 @@ public class PDBParser {
     This Class (and all corresponding ones) try to mimic this architecture.
     */
 
-    /*TODO: perhaps make this static? see pdbURL on how to create structure without instantiation
-
-        // private constructor
-        private PDBParserStatic() {}
-
-        // start of new method, replaces current constructor
-        public static Structure createStructure(String pdbID, String pdbFileContent) {
-
-            // better safe than sorry
-            reader = null;
-            currLine = null;
-
-            var structure = new Structure(pdbID);
-            ...
-     */
-
     //TODO: next to calls of progressLine() method: method to count atoms etc for statistics MAYBE USE MASTER RECORD
+
+    static final double BOND_TOLERANCE = 1.1;
 
     private final Structure structure;
     private BufferedReader reader;
@@ -47,9 +35,18 @@ public class PDBParser {
     private final ArrayList<Helix> helices = new ArrayList<>();
     private final ArrayList<Sheet> sheets = new ArrayList<>();
 
+    public HashMap<String, Map<String, Integer>> getAaCompositionPerChain() {
+        return aaCompositionPerChain;
+    }
+
+    private final HashMap<String, Map<String, Integer>> aaCompositionPerChain;
+
+
     PDBParser(String pdbID, String pdbFile) {
 
-        structure = new Structure(pdbID);
+        this.aaCompositionPerChain = new HashMap<>();
+        this.aaCompositionPerChain.put("Total", new HashMap<>());
+        this.structure = new Structure(pdbID);
         int modelID = 0;
 
         try {
@@ -60,7 +57,7 @@ public class PDBParser {
             while ( currLine != null && currLine.trim().length() > 0 ) {
 
                 if (currLine.startsWith("HELIX")) {
-                    helices.add(new Helix(
+                    this.helices.add(new Helix(
                             parseInt(currLine.substring(7, 10).strip()),
                             parseInt(currLine.substring(21, 25).strip()),
                             parseInt(currLine.substring(33, 37).strip()),
@@ -68,7 +65,7 @@ public class PDBParser {
                     ));
                 }
                 if (currLine.startsWith("SHEET")) {
-                    sheets.add(new Sheet(
+                    this.sheets.add(new Sheet(
                             parseInt(currLine.substring(7, 10).strip()),
                             currLine.substring(11, 14).strip(),
                             parseInt(currLine.substring(22, 26).strip()),
@@ -88,6 +85,7 @@ public class PDBParser {
             System.err.println("Error: Target File Cannot Be Read");
         }
         createBonds();
+
     }
 
     private Model parseModel(Structure structure, int modelID) {
@@ -102,7 +100,9 @@ public class PDBParser {
             }
 
             if (currLine.startsWith("ATOM")) {
+//                var chain = ;
                 model.add(parseChain(model));
+
             }
             progressLine();
         }
@@ -111,10 +111,13 @@ public class PDBParser {
 
     private Chain parseChain(Model model) {
         var chain = new Chain(currLine.charAt(21), model);
+        aaCompositionPerChain.putIfAbsent(String.valueOf(chain.getChainID()), new HashMap<>());//createAminoAcidCounting());
+//        System.out.println("parseChain " + chain.getChainID());
 
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
             if (currLine.startsWith("ATOM")) {
+
                 chain.add(parseResidue(chain));
                 //continue; //This line is IMPORTANT, we don't want to progress the line after adding a residue
             } else {
@@ -131,6 +134,9 @@ public class PDBParser {
 
     private Residue parseResidue(Chain chain) {
 
+        // some amino acids have multiple versions, the first char is used to differentiate them.
+        char res_version = currLine.charAt(16);
+
         int resID = parseInt(currLine.substring(22, 26).strip());
         String resType = currLine.substring(17, 20).strip();
         var residue = new Residue(resID, resType, chain);
@@ -139,15 +145,30 @@ public class PDBParser {
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
             if (currLine.startsWith("TER") || !(resID == parseInt(currLine.substring(22, 26).strip()))) {
+//                System.out.println("parseResidue " + chain.getChainID());
+                if (chain.getModel().getId() == 1){
+                    aaCompositionPerChain.get(String.valueOf(chain.getChainID()))
+                            .computeIfPresent(residue.getThreeLetter(), (k, v) -> v + 1);
+                    aaCompositionPerChain.get(String.valueOf(chain.getChainID()))
+                            .putIfAbsent(residue.getThreeLetter(), 1);
+                    aaCompositionPerChain.get("Total")
+                            .computeIfPresent(residue.getThreeLetter(), (k, v) -> v + 1);
+                    aaCompositionPerChain.get("Total")
+                            .putIfAbsent(residue.getThreeLetter(), 1);
+                }
                 return residue;
             }
 
             if (currLine.startsWith("ATOM")) {
+                if (!(currLine.charAt(16) == ' ') || !(currLine.charAt(16) == res_version)) {
+                    progressLine();
+                }
                 residue.add(parseAtom(residue));
             }
 
             attachSecStructure(residue);
             progressLine();
+//            res_version = currLine.charAt(16);
         }
         return residue;
     }
@@ -243,6 +264,32 @@ public class PDBParser {
     record Helix (int id, int start, int end, char chain){}
 
     record Sheet (int counter, String id, int start, int end, char chain){}
+
+//    private Map<String, Integer> createAminoAcidCounting() {
+//        //wrapping inside the hashMap constructor makes the map mutable -> allows usage of computeIfPresent()
+//        return new HashMap<>(Map.ofEntries(
+//                new AbstractMap.SimpleEntry<>("CYS", 0),
+//                new AbstractMap.SimpleEntry<>("ASP", 0),
+//                new AbstractMap.SimpleEntry<>("SER", 0),
+//                new AbstractMap.SimpleEntry<>("GLN", 0),
+//                new AbstractMap.SimpleEntry<>("LYS", 0),
+//                new AbstractMap.SimpleEntry<>("ILE", 0),
+//                new AbstractMap.SimpleEntry<>("PRO", 0),
+//                new AbstractMap.SimpleEntry<>("THR", 0),
+//                new AbstractMap.SimpleEntry<>("PHE", 0),
+//                new AbstractMap.SimpleEntry<>("ASN", 0),
+//                new AbstractMap.SimpleEntry<>("GLY", 0),
+//                new AbstractMap.SimpleEntry<>("HIS", 0),
+//                new AbstractMap.SimpleEntry<>("LEU", 0),
+//                new AbstractMap.SimpleEntry<>("ARG", 0),
+//                new AbstractMap.SimpleEntry<>("TRP", 0),
+//                new AbstractMap.SimpleEntry<>("ALA", 0),
+//                new AbstractMap.SimpleEntry<>("VAL", 0),
+//                new AbstractMap.SimpleEntry<>("GLU", 0),
+//                new AbstractMap.SimpleEntry<>("TYR", 0),
+//                new AbstractMap.SimpleEntry<>("MET", 0)
+//        ));
+//    }
 
 /* PDB format
 - 1 file == 1 Structure

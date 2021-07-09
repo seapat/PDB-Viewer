@@ -15,11 +15,11 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.chart.StackedBarChart?>
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CoV2StructureExplorer.view.WindowController">
     <MenuBar>
@@ -54,36 +54,42 @@
         <Tab closable="false" text="Report">
         <TextArea fx:id="abstractContent" editable="false" wrapText="true" />
         </Tab>
-        <Tab closable="false" text="Chart" />
+        <Tab fx:id="chartTab" closable="false" text="Chart">
+<!--            <StackedBarChart fx:id="staticChart" />-->
+        </Tab>
         <Tab closable="false" text="Visualisation">
-            <BorderPane BorderPane.alignment="CENTER">
-                <top>
-                    <ToolBar BorderPane.alignment="CENTER">
-                  <CheckBox fx:id="atomsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Atoms" />
+         <content>
+            <VBox>
+               <children>
+                  <ToolBar>
+                     <items>
+                        <CheckBox fx:id="atomsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Atoms" />
                         <Slider fx:id="radiusScale" max="1.5" min="0.5" prefWidth="100.0" value="1.0" />
-                  <CheckBox fx:id="bondsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Bonds" />
+                        <CheckBox fx:id="bondsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Bonds" />
                         <Slider fx:id="diameterScale" blockIncrement="50" max="15.0" min="5.0" prefWidth="100.0" value="10.0" />
-                  <CheckBox fx:id="ribbonChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Ribbon" />
+                        <CheckBox fx:id="ribbonChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Ribbon" />
                         <Pane HBox.hgrow="ALWAYS" />
                         <Label nodeOrientation="LEFT_TO_RIGHT" text="Color" />
                         <ChoiceBox fx:id="colorChoice" nodeOrientation="LEFT_TO_RIGHT" />
                         <Label fx:id="modelLabel" nodeOrientation="LEFT_TO_RIGHT" text="Model" />
                         <ChoiceBox fx:id="modelChoice" nodeOrientation="LEFT_TO_RIGHT" />
-                  <Button fx:id="loadModel" mnemonicParsing="false" text="Load" />
-                    </ToolBar>
-                </top>
-                <bottom>
-                    <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                        <Label fx:id="infoLabel" text="Info" />
-                    </ToolBar>
-                </bottom>
-                <center>
-                    <StackPane BorderPane.alignment="CENTER">
-                  <Pane fx:id="selectionPane" mouseTransparent="true" prefHeight="200.0" prefWidth="200.0" />
+                        <Button fx:id="loadModel" mnemonicParsing="false" text="Load" />
+                     </items>
+                  </ToolBar>
+                  <StackPane VBox.vgrow="ALWAYS">
+                     <children>
+                        <Pane fx:id="selectionPane" mouseTransparent="true" prefHeight="200.0" prefWidth="200.0" />
                         <Pane fx:id="figurePane" style="-fx-background-color: TRANSPARENT;" />
-                    </StackPane>
-                </center>
-            </BorderPane>
+                     </children>
+                  </StackPane>
+                  <ToolBar prefHeight="40.0" prefWidth="200.0">
+                     <items>
+                        <Label fx:id="infoLabel" text="Info" />
+                     </items>
+                  </ToolBar>
+               </children>
+            </VBox>
+         </content>
         </Tab>
         <Tab text="Testing: To be removed" />
     </TabPane>

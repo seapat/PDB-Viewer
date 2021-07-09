@@ -1,6 +1,8 @@
 package CoV2StructureExplorer.model;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class Structure extends ArrayList<Model> {
 
@@ -17,6 +19,8 @@ public class Structure extends ArrayList<Model> {
         this.idx = ++idx;
         this.pdbID = pdbID;
     }
+
+
 
     public String getPdbID() {
         return pdbID;

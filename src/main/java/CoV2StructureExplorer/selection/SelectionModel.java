@@ -4,6 +4,7 @@ import javafx.collections.ObservableSet;
 
 import java.util.Collection;
 
+// SELECTION
 public interface SelectionModel<T>  {
 
     boolean select(T t);

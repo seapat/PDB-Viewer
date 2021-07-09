@@ -1,10 +1,25 @@
 package CoV2StructureExplorer.view;
 
 import javafx.fxml.FXML;
+import javafx.scene.chart.StackedBarChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
 
 public class WindowController {
+
+    public Tab getChartTab() {
+        return chartTab;
+    }
+
+    public StackedBarChart<String, Number> getStaticChart() {
+        return staticChart;
+    }
+
+    @FXML
+    private StackedBarChart<String, Number> staticChart;
+
+    @FXML
+    private Tab chartTab;
 
     @FXML
     private Pane selectionPane;

@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class viewPresenter {
+public class ViewPresenter {
 
     private Double maxX;
     private Double maxY;
@@ -30,7 +30,7 @@ public class viewPresenter {
     private Double minZ;
     public final Group figure;
 
-    viewPresenter(WindowController controller, PDBFile model){
+    ViewPresenter(WindowController controller, PDBFile model){
         this.figure = setupView(controller, model);
         SubScene subScene = new SubScene(this.figure, 800, 800, true, SceneAntialiasing.DISABLED);
         subScene.widthProperty().bind(controller.getFigurePane().widthProperty());
@@ -63,10 +63,15 @@ public class viewPresenter {
         );
         balls.setVisible(false);
         balls.visibleProperty().bind(controller.getAtomsChecked().selectedProperty());
-        SelectionDots.setup(controller.getSelectionPane(), selectedAtoms, residue -> {
 
+        // SELECTION
+        SelectionDots.setup(controller.getSelectionPane(), selectedAtoms, residue -> {
             System.out.println("Lambda is executed");
-            return balls.getResidueSpheres().get(residue);
+            return balls.getResidueSpheres().get(residue); // TODO: add spheres individually currently : [[stuff]]
+            // TODO: it seems that this creates a nested list in the selection model,
+            //  maybe the listener is not triggered because the parent list never changes
+
+
 //            var selected = List.of();
 //            selectedAtoms.getSelectedItems().forEach(atom -> selected.add(atom));
 //            for (var atom : selectedAtoms.getSelectedItems()) {

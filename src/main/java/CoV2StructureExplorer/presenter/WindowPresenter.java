@@ -24,8 +24,8 @@ public class WindowPresenter {
 private WindowPresenter() {}
 
     private static PDBFile model;
-    private static viewPresenter view;
-    public static void setup(Stage stage, WindowController controller){ //, PDBFile model
+    private static ViewPresenter view;
+    public static void setup(Stage stage, WindowController controller){
 
         // setup ChoiceBox
         controller.getColorChoice().getItems().addAll("Atoms", "Structure", "Chains", "Residue");
@@ -92,7 +92,7 @@ private WindowPresenter() {}
 //            writePDB(controller, model);
             service.restart();
 
-            view = new viewPresenter(controller, model);
+            view = new ViewPresenter(controller, model);
 //            controller.getModelChoice().valueProperty().addListener(e2 -> {
 //                controller.getCenterPane().getChildren().clear();
 //                view.setupView(controller, model);
@@ -100,6 +100,7 @@ private WindowPresenter() {}
             controller.getInfoLabel().setText(model.getProtein().size() + " models found.");
 
             controller.getAbstractContent().setText(fillReportTab());
+            ChartPresenter.setupChartTab(model, controller);
         });
 
 
@@ -119,7 +120,7 @@ private WindowPresenter() {}
         controller.getLoadModel().setOnAction(e -> {
             controller.getFigurePane().getChildren().clear();
             // TODO: set up in a way that does not reset camera
-            view = new viewPresenter(controller, model);
+            view = new ViewPresenter(controller, model);
         });
 
 
@@ -139,10 +140,12 @@ private WindowPresenter() {}
         controller.getClearMenu().setOnAction(e -> clearAll(controller));
         controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
         controller.getExitMenu().setOnAction(e-> System.exit(0));
+
+
     }
 
     private static String fillReportTab() {
-        var content = new StringBuilder(model.getAbstractContent());
+        var content = new StringBuilder(model.getAbstractText());
         content.append("\n\nChains:\n");
         model.getChainSequences().forEach((chain, seq) ->
                 content.append(chain.getChainID())

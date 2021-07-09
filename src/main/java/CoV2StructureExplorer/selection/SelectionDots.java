@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
+// SELECTION
 public class SelectionDots<T> {
 
     public static<T> void setup(Pane selectionPane , SetSelectionModel<T> selectionModel ,
@@ -68,5 +69,15 @@ public class SelectionDots<T> {
         dot.setWidth(boundsScreen.getWidth());
         dot.setHeight(boundsScreen.getHeight());
     }
+
+    /*
+    Changes opacity of not selected atoms
+
+    var color = ((PhongMaterial) shape.getMaterial()).getDiffuseColor();
+                                color = new Color(color.getRed(), color.getGreen(), color.getBlue(), 0.3);
+                                ((PhongMaterial) shape.getMaterial()).setDiffuseColor(color);
+                                ((PhongMaterial) shape.getMaterial()).setSpecularColor(color.brighter());
+
+     */
 
 }
