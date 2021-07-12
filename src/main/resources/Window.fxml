@@ -73,7 +73,6 @@
                         <ChoiceBox fx:id="colorChoice" nodeOrientation="LEFT_TO_RIGHT" />
                         <Label fx:id="modelLabel" nodeOrientation="LEFT_TO_RIGHT" text="Model" />
                         <ChoiceBox fx:id="modelChoice" nodeOrientation="LEFT_TO_RIGHT" />
-                        <Button fx:id="loadModel" mnemonicParsing="false" text="Load" />
                      </items>
                   </ToolBar>
                   <StackPane VBox.vgrow="ALWAYS">

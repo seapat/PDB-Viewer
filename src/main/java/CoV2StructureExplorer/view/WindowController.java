@@ -25,9 +25,6 @@ public class WindowController {
     private Pane selectionPane;
 
     @FXML
-    private Button loadModel;
-
-    @FXML
     private TextArea abstractContent;
 
     @FXML
@@ -172,10 +169,6 @@ public class WindowController {
 
     public TextArea getAbstractContent() {
         return abstractContent;
-    }
-
-    public Button getLoadModel() {
-        return loadModel;
     }
 
     public Pane getSelectionPane() {

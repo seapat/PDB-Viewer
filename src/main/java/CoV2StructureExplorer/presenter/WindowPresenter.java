@@ -2,9 +2,9 @@ package CoV2StructureExplorer.presenter;
 
 import CoV2StructureExplorer.model.PDBFile;
 import CoV2StructureExplorer.model.PDBWeb;
+import CoV2StructureExplorer.view.WindowController;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
@@ -12,20 +12,40 @@ import javafx.scene.control.ButtonType;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import CoV2StructureExplorer.view.WindowController;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class WindowPresenter {
 
-private WindowPresenter() {}
+    private String pdbCode;
+    private PDBFile model;
+    private final Service<ArrayList<String>> textService = new Service<>() {
+        @Override
+        protected Task<ArrayList<String>> createTask() {
+            return new pdbTextTask(model);
+        }
+    };
+    private WindowController controller;
+    private final Service<PDBFile> modelService = new Service<>() {
+        @Override
+        protected Task<PDBFile> createTask() {
+            return new changeModelTask(pdbCode, controller);
+        }
+    };
+    private Stage stage;
+    private ViewPresenter view;
 
-    private static PDBFile model;
-    private static ViewPresenter view;
-    public static void setup(Stage stage, WindowController controller){
+    private WindowPresenter() {
+    }
+
+    public WindowPresenter(Stage stage, WindowController controller) {
+        this.controller = controller;
+        this.stage = stage;
 
         // setup ChoiceBox
         controller.getColorChoice().getItems().addAll("Atoms", "Structure", "Chains", "Residue");
@@ -37,70 +57,56 @@ private WindowPresenter() {}
         controller.getModelLabel().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
         controller.getModelChoice().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
         controller.getModelLabel().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
-        controller.getLoadModel().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
-        controller.getLoadModel().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
+        controller.getModelChoice().setValue(1);
 
         // service to parse pdb file in background
-        var service = new Service<ArrayList<String>>() {
-            @Override
-            protected Task<ArrayList<String>> createTask() {
-                return new pdbTextTask();
-            }
-        };
-        service.setOnScheduled( v ->
-            clearAll(controller)
-        );
-        service.setOnSucceeded(v -> {
-            controller.getPdbText().setItems(FXCollections.observableArrayList(service.getValue()));
+
+        textService.setOnScheduled(v -> clearAll(controller));
+        textService.setOnSucceeded(v -> {
+            controller.getPdbText().setItems(FXCollections.observableArrayList(textService.getValue()));
             controller.getPdbText().scrollTo(0);
+        });
+
+//        modelService.setOnSucceeded(v -> clearAll(controller));
+        modelService.setOnSucceeded(v -> {
+            this.model = modelService.getValue();
+
+            // populate model choice
+            controller.getModelChoice().getItems().clear();
+            for (var item : this.model.getProtein()) {
+                controller.getModelChoice().getItems().add(item.getId());
+            }
+            controller.getModelChoice().setValue(1);
+            sizeModelChoiceSize.setValue(controller.getModelChoice().getItems().size());
+            controller.getInfoLabel().setText(model.getProtein().size() + " models found.");
+
+            textService.restart();
+
+            this.view = new ViewPresenter(controller, model);
+
+            controller.getAbstractContent().setText(fillReportTab());
+            ChartPresenter.setupChartTab(this.model, controller);
         });
 
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
         controller.getParseButton().disableProperty().bind(
                 // TODO: check if parse button is disabled correctly when service is running
-                service.runningProperty().or(
+                textService.runningProperty().or(
                         controller.getEntryField().textProperty().length().isEqualTo(4).or(
                                 controller.getPdbCodeList().getSelectionModel().selectedItemProperty().isNotNull()))
                         .not()
         );
         controller.getParseButton().setOnAction(e -> {
-            var selection = controller.getPdbCodeList().getSelectionModel().getSelectedItem();
+
             var enteredQuery = controller.getEntryField().getText();
-            String pdbCode;
-            if (enteredQuery.length() == 4 ) {
+            //String pdbCode;
+            if (enteredQuery.length() == 4) {
                 pdbCode = enteredQuery;
             } else {
-                pdbCode = selection;
+                pdbCode = controller.getPdbCodeList().getSelectionModel().getSelectedItem();
             }
-
-            clearAll(controller);
-            model = new PDBFile(pdbCode);
-
-            // populate model choice
-            controller.getModelChoice().getItems().clear();
-            for (var item : model.getProtein()){
-                controller.getModelChoice().getItems().add(item.getId());
-            }
-            try {
-                controller.getModelChoice().setValue(controller.getModelChoice().getItems().get(0));
-            } catch (Exception idxException){
-                //do nothing
-            }
-
-            sizeModelChoiceSize.setValue(controller.getModelChoice().getItems().size());
-
-//            writePDB(controller, model);
-            service.restart();
-
-            view = new ViewPresenter(controller, model);
-//            controller.getModelChoice().valueProperty().addListener(e2 -> {
-//                controller.getCenterPane().getChildren().clear();
-//                view.setupView(controller, model);
-//            });
-            controller.getInfoLabel().setText(model.getProtein().size() + " models found.");
-
-            controller.getAbstractContent().setText(fillReportTab());
-            ChartPresenter.setupChartTab(model, controller);
+//            this.model = new PDBFile(pdbCode);
+            modelService.restart();
         });
 
 
@@ -117,47 +123,20 @@ private WindowPresenter() {}
                         FXCollections.observableArrayList(
                                 PDBWeb.getPDBEntries(controller.getEntryField().getText())))
         );
-        controller.getLoadModel().setOnAction(e -> {
-            controller.getFigurePane().getChildren().clear();
-            // TODO: set up in a way that does not reset camera
-            view = new ViewPresenter(controller, model);
+        controller.getModelChoice().valueProperty().addListener((v, o, n) -> {
+            if (n != null && o != null && !n.equals(o)) {
+                controller.getFigurePane().getChildren().clear();
+                System.out.println("model choice listener triggered");
+                // TODO: set up in a way that does not reset camera
+                view = new ViewPresenter(controller, model);
+            }
         });
 
-
-        // Menu item Listeners
-        controller.getAboutMenu().setOnAction(e -> {
-            var alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("About this thing!");
-            alert.setHeaderText("About this program");
-            alert.setContentText("""
-                This application fetches and visualizes pdb Files from rcsb.org
-                                
-                Author: Sean Klein
-                """);
-            alert.showAndWait();
-        });
-        controller.getOpenMenu().setOnAction(e -> openPDB(stage,controller,model));
-        controller.getClearMenu().setOnAction(e -> clearAll(controller));
-        controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
-        controller.getExitMenu().setOnAction(e-> System.exit(0));
-
-
+        this.menuButtons();
     }
 
-    private static String fillReportTab() {
-        var content = new StringBuilder(model.getAbstractText());
-        content.append("\n\nChains:\n");
-        model.getChainSequences().forEach((chain, seq) ->
-                content.append(chain.getChainID())
-                        .append(": \n")
-                        .append(seq)
-                        .append("\n")
-        );
-        return content.toString();
-    }
-
-    private static void savePDB(Stage stage, WindowController controller, PDBFile model){
-        if (model == null){
+    private static void savePDB(Stage stage, WindowController controller, PDBFile model) {
+        if (model == null) {
             var info = new Alert(Alert.AlertType.ERROR, "No pdb entry loaded!");
             info.showAndWait();
         } else {
@@ -181,7 +160,44 @@ private WindowPresenter() {}
         }
     }
 
-    private static void openPDB(Stage stage, WindowController controller, PDBFile model) {
+    private static void clearAll(WindowController controller) {
+        controller.getFigurePane().getChildren().clear();
+        controller.getChartTab().setContent(null);
+        controller.getPdbText().getItems().clear();
+    }
+
+    private void menuButtons() {
+        // Menu item Listeners
+        controller.getAboutMenu().setOnAction(e -> {
+            var alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("About this thing!");
+            alert.setHeaderText("About this program");
+            alert.setContentText("""
+                    This application fetches and visualizes pdb Files from rcsb.org
+                                    
+                    Author: Sean Klein
+                    """);
+            alert.showAndWait();
+        });
+        controller.getOpenMenu().setOnAction(e -> openPDB(stage, this.controller));
+        controller.getClearMenu().setOnAction(e -> clearAll(this.controller));
+        controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
+        controller.getExitMenu().setOnAction(e -> System.exit(0));
+    }
+
+    private String fillReportTab() {
+        var content = new StringBuilder(this.model.getAbstractText());
+        content.append("\n\nChains:\n");
+        this.model.getChainSequences().forEach((chain, seq) ->
+                content.append(chain.getChainID())
+                        .append(": \n")
+                        .append(seq)
+                        .append("\n")
+        );
+        return content.toString();
+    }
+
+    private void openPDB(Stage stage, WindowController controller) {
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open PDB File");
@@ -191,52 +207,35 @@ private WindowPresenter() {}
         File selectedFile = fileChooser.showOpenDialog(stage);
         if (selectedFile != null) {
             clearAll(controller);
-            model = new PDBFile(Path.of(selectedFile.getPath())); //Files.readString(Path.of(selectedFile.getPath()));
-            writePDB(controller, model); //TODO: call service here
+            this.model = new PDBFile(Path.of(selectedFile.getPath()));
+            this.textService.restart();
+            this.view = new ViewPresenter(controller, this.model);
         }
     }
 
-    private static void clearAll(WindowController controller) {
-        controller.getPdbText().getItems().clear();
-        controller.getFigurePane().getChildren().clear();
-    }
-
-    private static void writePDB(WindowController controller, PDBFile model){
-
-        var reader = new BufferedReader(new StringReader(model.getContent()));
-
-        long size = reader.lines().count();
-        long count = 0;
-        ObservableList<String> lines = FXCollections.observableArrayList();
-
-        Scanner scanner = new Scanner(model.getContent());
-
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            lines.add(line);
-            controller.getPdbText().getItems().add(line);
-            count++;
-        }
-        scanner.close();
-    }
-
-    // FIXME: either this or WritePDB
     private static class pdbTextTask extends Task<ArrayList<String>> {
+
+        BufferedReader reader;
+        long size;
+
+        pdbTextTask(PDBFile model) {
+            this.reader = new BufferedReader(new StringReader(model.getContent()));
+            this.size = model.getContent().lines().count();
+        }
+
         @Override
         public ArrayList<String> call() throws IOException {
 
-            var reader = new BufferedReader(new StringReader(model.getContent()));
-            long size = model.getContent().lines().count();
             long count = 0;
             ArrayList<String> lines = new ArrayList<>();
 
             var currLine = reader.readLine();
-            while ( currLine != null && currLine.trim().length() > 0 ) {
+            while (currLine != null && currLine.trim().length() > 0) {
 
                 lines.add(currLine);
                 count++;
                 if (isCancelled()) return null;
-                updateProgress(count/size, size);
+                updateProgress(count / size, size);
 
                 currLine = reader.readLine();
             }
@@ -246,6 +245,44 @@ private WindowPresenter() {}
         }
     }
 
+    private static class changeModelTask extends Task<PDBFile> {
+
+        PDBFile model;
+        WindowController controller;
+
+        changeModelTask(String pdbID, WindowController controller) {
+            this.model = new PDBFile(pdbID);
+            this.controller = controller;
+        }
+
+        changeModelTask(Path pdbID, WindowController controller) {
+            this.model = new PDBFile(pdbID);
+            this.controller = controller;
+        }
+
+        @Override
+        public PDBFile call() {
+
+            return this.model;
+        }
+    }
+
+    // TODO: How to set this up.
+    private static class changeViewTask extends Task<ViewPresenter> {
+
+        ViewPresenter view;
+        WindowController controller;
+
+        changeViewTask(PDBFile model, WindowController controller) {
+            this.view = new ViewPresenter(controller, model);
+            this.controller = controller;
+        }
+
+        @Override
+        public ViewPresenter call() {
+            return this.view;
+        }
+    }
 
 
 }
