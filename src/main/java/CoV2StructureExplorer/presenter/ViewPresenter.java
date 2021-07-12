@@ -6,10 +6,13 @@ import CoV2StructureExplorer.selection.SetSelectionModel;
 import CoV2StructureExplorer.model.PDBFile;
 import CoV2StructureExplorer.model.Residue;
 import CoV2StructureExplorer.view.Balls;
+import CoV2StructureExplorer.view.Mesh;
 import CoV2StructureExplorer.view.Sticks;
 import CoV2StructureExplorer.view.WindowController;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.SetChangeListener;
 import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 import javafx.scene.*;
@@ -29,9 +32,11 @@ public class ViewPresenter {
     private Double minX;
     private Double minY;
     private Double minZ;
-    public final Group figure;
+    private final Group figure;
 
     ViewPresenter(WindowController controller, PDBFile model){
+        controller.getFigurePane().getChildren().clear();
+
         this.figure = setupView(controller, model);
         SubScene subScene = new SubScene(this.figure, 800, 800, true, SceneAntialiasing.DISABLED);
         subScene.widthProperty().bind(controller.getFigurePane().widthProperty());
@@ -46,10 +51,13 @@ public class ViewPresenter {
     protected Group setupView(WindowController controller, PDBFile model) {
         Group figure = new Group();
 
+        var mesh = new Mesh(model.getProtein(), controller.getModelChoice().getValue());
+        mesh.setVisible(false);
+        mesh.visibleProperty().bind(controller.getRibbonChecked().selectedProperty());
+
         var sticks = new Sticks(model.getProtein(),
                 controller.getDiameterScale().valueProperty(),
-                controller.getModelChoice().getValue(),
-                controller
+                controller.getModelChoice().getValue()
         );
         sticks.setVisible(false);
         sticks.visibleProperty().bind(controller.getBondsChecked().selectedProperty());
@@ -59,16 +67,22 @@ public class ViewPresenter {
                 controller.getRadiusScale().valueProperty(),
                 controller.getModelChoice().getValue(),
                 controller.getColorChoice().getValue(),
-                controller,
                 selectedAtoms
         );
         balls.setVisible(false);
         balls.visibleProperty().bind(controller.getAtomsChecked().selectedProperty());
+        balls.changeColor(controller.getColorChoice().getValue(), controller);
+
+//        controller.leg
+        controller.getColorChoice().getValue();
+
 
         // SELECTION
+        selectedAtoms.getSelectedItems().addListener((SetChangeListener<? super Atom>) e -> System.out.println("setchange: ObsSet changes"));
+        selectedAtoms.getSelectedItems().addListener((InvalidationListener) e -> System.out.println("invalid: ObsSet changes"));
         SelectionDots.setup(controller.getSelectionPane(), selectedAtoms, residue -> {
             System.out.println("Lambda is executed");
-            return balls.getResidueSpheres().get(residue);
+            return balls.getResidueSpheres().get(residue.getResidue());
         }, balls.layoutXProperty(), balls.layoutYProperty());
 
         // FIXME: Maybe write this as a single loop over all atoms? might be faster overall
@@ -79,10 +93,14 @@ public class ViewPresenter {
         this.minY = balls.getChildren().stream().map(y -> y.translateYProperty().getValue()).min(Double::compare).orElse(0d);
         this.minZ = balls.getChildren().stream().map(z -> z.translateZProperty().getValue()).min(Double::compare).orElse(0d);
         controller.getColorChoice().valueProperty().addListener(e ->
-                balls.changeColor(controller.getColorChoice().getValue())
+                balls.changeColor(controller.getColorChoice().getValue(), controller)
         );
 
-        figure.getChildren().addAll(sticks, balls);
+//        figure.getChildren().addAll(mesh, sticks, balls);
+        figure.getChildren().add(sticks);
+        figure.getChildren().add(balls);
+        figure.getChildren().add(mesh);
+
         return figure;
     }
 
@@ -120,7 +138,6 @@ public class ViewPresenter {
     private double x = 0;
     private double y = 0;
 
-    // TODO: disable rotation if not everything hidden
     public void setupRotation(WindowController controller) {
 
         var pane = controller.getFigurePane();
@@ -134,19 +151,24 @@ public class ViewPresenter {
         });
 
         pane.setOnMouseDragged(e -> {
-            pane.setCursor(Cursor.CLOSED_HAND);
-            var delta = new Point2D((e.getSceneX() - x), (e.getSceneY() - y));
-            var dragOrthogonalAxis = new Point3D(delta.getY(), -delta.getX(), 0);
-            var rotate = new Rotate(0.5 * delta.magnitude(), dragOrthogonalAxis);
+            if (controller.getRibbonChecked().isSelected() ||
+                    controller.getAtomsChecked().isSelected()  ||
+                    controller.getBondsChecked().isSelected() ){
 
-            rotate.setPivotX((maxX + minX) / 2);
-            rotate.setPivotY((maxY + minY) / 2);
-            rotate.setPivotZ((maxZ + minZ) / 2);
+                pane.setCursor(Cursor.CLOSED_HAND);
+                var delta = new Point2D((e.getSceneX() - x), (e.getSceneY() - y));
+                var dragOrthogonalAxis = new Point3D(delta.getY(), -delta.getX(), 0);
+                var rotate = new Rotate(0.5 * delta.magnitude(), dragOrthogonalAxis);
 
-            figureTransformProperty.setValue(rotate.createConcatenation(figureTransformProperty.getValue()));
-            x = e.getSceneX();
-            y = e.getSceneY();
-            e.consume();
+                rotate.setPivotX((maxX + minX) / 2);
+                rotate.setPivotY((maxY + minY) / 2);
+                rotate.setPivotZ((maxZ + minZ) / 2);
+
+                figureTransformProperty.setValue(rotate.createConcatenation(figureTransformProperty.getValue()));
+                x = e.getSceneX();
+                y = e.getSceneY();
+                e.consume();
+            }
         });
 
         pane.setOnMouseReleased(e -> pane.setCursor(Cursor.DEFAULT));
