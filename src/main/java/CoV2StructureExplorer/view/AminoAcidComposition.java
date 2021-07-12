@@ -46,7 +46,6 @@ public class AminoAcidComposition {
         return chart;
     }
 
-    // TODO legend
     // TODO: overwrite colors via css
 
 }

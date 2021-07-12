@@ -6,7 +6,6 @@ import CoV2StructureExplorer.view.WindowController;
 
 public class ChartPresenter {
 
-    // TODO somehow attach this to the chart tab
     public static void setupChartTab(PDBFile model, WindowController controller){
 //        var aaComposition = model.getAaComposition();
 

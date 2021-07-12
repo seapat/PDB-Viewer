@@ -1,7 +1,5 @@
 package CoV2StructureExplorer.selection;
 
-// TODO: Should only contain model items, no javaFX
-
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -64,8 +62,8 @@ public class SelectionDots<T> {
         var paneBoundsScreen = pane .localToScreen(pane.getBoundsInLocal());
         var xInScene = boundsScreen.getMinX() - paneBoundsScreen.getMinX();
         var yInScene = boundsScreen.getMinY() - paneBoundsScreen.getMinY();
-        dot.setX( xInScene ) ;
-        dot.setY( yInScene ) ;
+        dot.setX(xInScene);
+        dot.setY(yInScene);
         dot.setWidth(boundsScreen.getWidth());
         dot.setHeight(boundsScreen.getHeight());
     }

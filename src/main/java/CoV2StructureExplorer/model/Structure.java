@@ -1,8 +1,6 @@
 package CoV2StructureExplorer.model;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Map;
 
 public class Structure extends ArrayList<Model> {
 

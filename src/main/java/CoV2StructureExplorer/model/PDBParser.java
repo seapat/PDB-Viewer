@@ -25,8 +25,6 @@ public class PDBParser {
     This Class (and all corresponding ones) try to mimic this architecture.
     */
 
-    //TODO: next to calls of progressLine() method: method to count atoms etc for statistics MAYBE USE MASTER RECORD
-
     static final double BOND_TOLERANCE = 1.1;
 
     private final Structure structure;
@@ -111,20 +109,18 @@ public class PDBParser {
 
     private Chain parseChain(Model model) {
         var chain = new Chain(currLine.charAt(21), model);
-        aaCompositionPerChain.putIfAbsent(String.valueOf(chain.getChainID()), new HashMap<>());//createAminoAcidCounting());
-//        System.out.println("parseChain " + chain.getChainID());
+        aaCompositionPerChain.putIfAbsent(String.valueOf(chain.getChainID()), new HashMap<>());
 
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
             if (currLine.startsWith("ATOM")) {
 
                 chain.add(parseResidue(chain));
-                //continue; //This line is IMPORTANT, we don't want to progress the line after adding a residue
             } else {
                 progressLine();
             }
 
-            if (currLine.startsWith("TER")) { //currLine.startsWith("ENDMDL") ||
+            if (currLine.startsWith("TER")) {
                 return chain;
             }
 
@@ -145,7 +141,6 @@ public class PDBParser {
         while ( currLine != null && currLine.trim().length() > 0 ) {
 
             if (currLine.startsWith("TER") || !(resID == parseInt(currLine.substring(22, 26).strip()))) {
-//                System.out.println("parseResidue " + chain.getChainID());
                 if (chain.getModel().getId() == 1){
                     aaCompositionPerChain.get(String.valueOf(chain.getChainID()))
                             .computeIfPresent(residue.getThreeLetter(), (k, v) -> v + 1);
@@ -156,6 +151,7 @@ public class PDBParser {
                     aaCompositionPerChain.get("Total")
                             .putIfAbsent(residue.getThreeLetter(), 1);
                 }
+                attachSecStructure(residue);
                 return residue;
             }
 
@@ -163,13 +159,13 @@ public class PDBParser {
                 if (!(currLine.charAt(16) == ' ') || !(currLine.charAt(16) == res_version)) {
                     progressLine();
                 }
-                residue.add(parseAtom(residue));
+                var atom = parseAtom(residue);
+                residue.putIfAbsent(atom.getComplexType(), atom);
             }
 
-            attachSecStructure(residue);
             progressLine();
-//            res_version = currLine.charAt(16);
         }
+        attachSecStructure(residue);
         return residue;
     }
 
@@ -192,7 +188,7 @@ public class PDBParser {
         for (var helix : helices){
             if (residue.getChain().getChainID() == helix.chain() && residue.getId() >= helix.start() && residue.getId() <= helix.end()){
                 residue.setStructure(StructureType.HELIX);
-                residue.forEach(atom -> atom.setStructureType(StructureType.HELIX));
+                residue.values().forEach(atom -> atom.setStructureType(StructureType.HELIX));
                 break;
             }
         }
@@ -200,10 +196,14 @@ public class PDBParser {
             for (var sheet : sheets){
                 if (residue.getChain().getChainID() == sheet.chain() && residue.getId() >= sheet.start() && residue.getId() <= sheet.end()){
                     residue.setStructure(StructureType.SHEET);
-                    residue.forEach(atom -> atom.setStructureType(StructureType.SHEET));
+                    residue.values().forEach(atom -> atom.setStructureType(StructureType.SHEET));
                     break;
                 }
             }
+        }
+        if (residue.getStructureType() == StructureType.COIL && residue.getOneLetter() == null){
+            residue.setStructure(StructureType.NUCLEOTIDE);
+            residue.values().forEach(atom -> atom.setStructureType(StructureType.NUCLEOTIDE));
         }
     }
 
@@ -227,8 +227,8 @@ public class PDBParser {
     }
 
     private static void createBondsHelper(Residue residue1, Residue residue2){
-        for (var atom1 : residue1) {
-            for (var atom2 : residue2) {
+        for (var atom1 : residue1.values()) {
+            for (var atom2 : residue2.values()) {
                 double distanceThreshold = (atom1.getRadius() + atom2.getRadius()) * BOND_TOLERANCE;
                 if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < distanceThreshold && !atom1.equals(atom2)){
                     atom1.addBond(atom2);
