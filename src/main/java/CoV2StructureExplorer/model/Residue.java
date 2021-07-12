@@ -2,9 +2,10 @@ package CoV2StructureExplorer.model;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
-public class Residue extends ArrayList<Atom> {
+public class Residue extends HashMap<String, Atom> {
 
     private static final Map<String, Character> lookUpAminoAcids = Map.ofEntries(
             new AbstractMap.SimpleEntry<>("CYS", 'C'),
@@ -44,7 +45,7 @@ public class Residue extends ArrayList<Atom> {
         this.threeLetter = threeLetter;
         this.chain = chain;
         this.secStructure = StructureType.COIL;
-        this.oneLetter = lookUpAminoAcids.getOrDefault(this.threeLetter, threeLetter.charAt(0));
+        this.oneLetter = lookUpAminoAcids.getOrDefault(this.threeLetter, this.getThreeLetter().charAt(0));
     }
 
     public String getThreeLetter() {

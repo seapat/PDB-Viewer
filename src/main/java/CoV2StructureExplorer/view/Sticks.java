@@ -13,12 +13,12 @@ import java.util.HashSet;
 
 public class Sticks extends Group {
 
-    public Sticks(Structure pdb, ReadOnlyDoubleProperty diameterScale, Integer modelChoice, WindowController controller){
+    public Sticks(Structure pdb, ReadOnlyDoubleProperty diameterScale, Integer modelChoice){
 
         var bonds = new HashSet<MyPair<Atom.Position, Atom.Position>>();
         for (var chain: pdb.get(modelChoice -1 )) {
             for (var residue : chain) {
-                for (var atom : residue) {
+                for (var atom : residue.values()) {
                     for (var bond : atom.getBonds()) {
                         bonds.add(new MyPair<>(atom.getPosition(), bond.getPosition()));
                     }
@@ -52,7 +52,6 @@ public class Sticks extends Group {
 
             cylinder.radiusProperty().bind(diameterScale.multiply(cylinder.getRadius()));
             getChildren().add(cylinder);
-
         }
         System.out.println("sticks: " + this.getChildren().size());
     }

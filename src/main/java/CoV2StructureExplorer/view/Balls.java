@@ -44,17 +44,18 @@ public class Balls extends Group {
             // is it ok to check for Enums here which are declared in the model? maybe
             new AbstractMap.SimpleEntry<>("COIL", Color.LIGHTGREEN),
             new AbstractMap.SimpleEntry<>("SHEET", Color.YELLOW),
-            new AbstractMap.SimpleEntry<>("HELIX", Color.RED)
+            new AbstractMap.SimpleEntry<>("HELIX", Color.RED),
+            new AbstractMap.SimpleEntry<>("NUCLEOTIDE", Color.CORNFLOWERBLUE)
     );
 
     // create list of colors, iterator is renewed once the list ends
     private final static List<Color> chainColors = Collections.synchronizedList(new ArrayList<>(Arrays.asList(
-            Color.AQUA, Color.DARKMAGENTA, Color.AQUAMARINE, Color.HOTPINK, Color.INDIANRED, Color.INDIGO,
-            Color.MEDIUMPURPLE, Color.MEDIUMTURQUOISE, Color.MEDIUMVIOLETRED, Color.ORANGE, Color.YELLOW
+            Color.DARKMAGENTA, Color.AQUAMARINE, Color.HOTPINK, Color.INDIANRED, Color.INDIGO, Color.LIGHTGREEN, Color.YELLOW,
+            Color.MEDIUMPURPLE, Color.ORANGE, Color.YELLOW, Color.PALEVIOLETRED, Color.LIGHTGREEN, Color.CORNFLOWERBLUE
     )));
     private static Iterator<Color> iterateChainColors = chainColors.iterator();
 
-    public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice, String colorChoice, WindowController controller, SetSelectionModel<Atom> selectedAtoms){
+    public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice, String colorChoice, SetSelectionModel<Atom> selectedAtoms){
 
         for (var chain: pdb.get(modelChoice -1 )){
             if (!iterateChainColors.hasNext()) {
@@ -63,7 +64,7 @@ public class Balls extends Group {
 
             for (var residue: chain) {
                 var spheres = new ArrayList<Sphere>();
-                for (var atom: residue) {
+                for (var atom: residue.values()) {
                     final Sphere sphere = new Sphere(100, 32);
 
                     sphere.setTranslateX((int)(100 * atom.getPosition().x()));
@@ -75,28 +76,26 @@ public class Balls extends Group {
                     // SELECTION
                     sphere.setOnMouseClicked(e -> {
                         if (!e.isShiftDown()) { selectedAtoms.clearSelection(); }
-                        residue.forEach(atomSpehre -> selectedAtoms.select(atomSpehre));
-                        ;
+                        residue.values().forEach(selectedAtoms::select);
                         System.out.println("clicking is recognized");
                         System.out.println(selectedAtoms.getSelectedItems());
                     });
 
-                    // Add twice, once to scene graph, other time to the hashmap to access subsets of spheres
-                    getChildren().add(sphere);
+                    // Add twice, once to Group, other time to the hashmap to access subsets of spheres
+                    this.getChildren().add(sphere);
                     atomSpheres.add(new Pair<>(atom, sphere));
                     spheres.add(sphere);
                 }
-                System.out.println(spheres);
+                //System.out.println(spheres);
                 residueSpheres.putIfAbsent(residue, spheres);
             }
         }
-        changeColor(colorChoice);
+//        this.changeColor(colorChoice);
+
         System.out.println("balls: " + this.getChildren().size());
     }
 
-    public void changeColor(String colorChoice){
-
-        //TODO: color rna/dna differently than coil, maybe in parser add new type?
+    public void changeColor(String colorChoice, WindowController controller){
 
         Character lastChain = null;
         Residue lastResidue = null;
@@ -111,16 +110,21 @@ public class Balls extends Group {
             }
 
             // go to next chain
-            if ((colorChoice.equals("Structure") && lastChain != null && lastChain != atom.getChain()) || 
+            if ((colorChoice.equals("Chains") && lastChain != null && lastChain != atom.getChain()) ||
                     (colorChoice.equals("Residue") && lastResidue != null && !lastResidue.equals(atom.getResidue()))) {
                 currIterColor = iterateChainColors.next();
             }
 
             Color color;
             switch (colorChoice){
-                case "Structure" -> color = secStrucColors.getOrDefault(atom.getStructureType().toString(), Color.PLUM);
+                case "Structure" -> {
+                    color = secStrucColors.getOrDefault(atom.getStructureType().toString(), Color.PLUM);
+                }
                 case "Chains", "Residue" -> color = currIterColor;
-                default -> color = atomColors.getOrDefault(atom.getSimpleType(), Color.PLUM);
+                default -> {
+                    color = atomColors.getOrDefault(atom.getSimpleType(), Color.PLUM);
+
+                }
             }
             sphere.setMaterial(new PhongMaterial(color));
 
