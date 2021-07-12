@@ -13,8 +13,8 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         var view = new Window();
-//        var presenter = new WindowPresenter(primaryStage, view.getController());
-        WindowPresenter.setup(primaryStage,view.getController());
+        var presenter = new WindowPresenter(primaryStage, view.getController());
+//        WindowPresenter.setup(primaryStage,view.getController());
 
         primaryStage.setScene(new Scene(view.getRoot()));
         primaryStage.setTitle("CoV2Structure Explorer");
