@@ -1,10 +1,10 @@
 package CoV2StructureExplorer.presenter;
 
 import CoV2StructureExplorer.model.Atom;
+import CoV2StructureExplorer.model.Chain;
 import CoV2StructureExplorer.selection.SelectionDots;
 import CoV2StructureExplorer.selection.SetSelectionModel;
 import CoV2StructureExplorer.model.PDBFile;
-import CoV2StructureExplorer.model.Residue;
 import CoV2StructureExplorer.view.Balls;
 import CoV2StructureExplorer.view.Mesh;
 import CoV2StructureExplorer.view.Sticks;
@@ -17,14 +17,19 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 import javafx.scene.*;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.Shape3D;
+import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 
 public class ViewPresenter {
+    
+    /* 
+    TODO : Das wurde glaub nur im meeting besprochen... du musst einfach den mittelpunkt der einzelnen moleküle berechnen und diesen vektor normalisieren
+     */
 
     private Double maxX;
     private Double maxY;
@@ -66,43 +71,66 @@ public class ViewPresenter {
         var balls = new Balls(model.getProtein(),
                 controller.getRadiusScale().valueProperty(),
                 controller.getModelChoice().getValue(),
-                controller.getColorChoice().getValue(),
                 selectedAtoms
         );
         balls.setVisible(false);
         balls.visibleProperty().bind(controller.getAtomsChecked().selectedProperty());
         balls.changeColor(controller.getColorChoice().getValue(), controller);
 
-//        controller.leg
-        controller.getColorChoice().getValue();
-
-
         // SELECTION
         selectedAtoms.getSelectedItems().addListener((SetChangeListener<? super Atom>) e -> System.out.println("setchange: ObsSet changes"));
         selectedAtoms.getSelectedItems().addListener((InvalidationListener) e -> System.out.println("invalid: ObsSet changes"));
-        SelectionDots.setup(controller.getSelectionPane(), selectedAtoms, residue -> {
+        SelectionDots.setup(controller.getSelectionPane(), selectedAtoms, atom -> {
             System.out.println("Lambda is executed");
-            return balls.getResidueSpheres().get(residue.getResidue());
+            return (List<? extends Shape3D>) balls.getModelToView().get(atom.getResidue().getChain()).get(atom.getResidue()).values();
         }, balls.layoutXProperty(), balls.layoutYProperty());
 
         // FIXME: Maybe write this as a single loop over all atoms? might be faster overall
-        this.maxX = balls.getChildren().stream().map(x -> x.translateXProperty().getValue()).max(Double::compare).orElse(0d);
-        this.maxY = balls.getChildren().stream().map(y -> y.translateYProperty().getValue()).max(Double::compare).orElse(0d);
-        this.maxZ = balls.getChildren().stream().map(z -> z.translateZProperty().getValue()).max(Double::compare).orElse(0d);
-        this.minX = balls.getChildren().stream().map(x -> x.translateXProperty().getValue()).min(Double::compare).orElse(0d);
-        this.minY = balls.getChildren().stream().map(y -> y.translateYProperty().getValue()).min(Double::compare).orElse(0d);
-        this.minZ = balls.getChildren().stream().map(z -> z.translateZProperty().getValue()).min(Double::compare).orElse(0d);
-        controller.getColorChoice().valueProperty().addListener(e ->
-                balls.changeColor(controller.getColorChoice().getValue(), controller)
+//        this.maxX = balls.getChildren().stream().map(x -> x.translateXProperty().getValue()).max(Double::compare).orElse(0d);
+//        this.maxY = balls.getChildren().stream().map(y -> y.translateYProperty().getValue()).max(Double::compare).orElse(0d);
+//        this.maxZ = balls.getChildren().stream().map(z -> z.translateZProperty().getValue()).max(Double::compare).orElse(0d);
+//        this.minX = balls.getChildren().stream().map(x -> x.translateXProperty().getValue()).min(Double::compare).orElse(0d);
+//        this.minY = balls.getChildren().stream().map(y -> y.translateYProperty().getValue()).min(Double::compare).orElse(0d);
+//        this.minZ = balls.getChildren().stream().map(z -> z.translateZProperty().getValue()).min(Double::compare).orElse(0d);
+
+        this.maxX = sticks.getLayoutBounds().getMaxX();
+        this.maxY = sticks.getLayoutBounds().getMaxY();
+        this.maxZ = sticks.getLayoutBounds().getMaxZ();
+        this.minX = sticks.getLayoutBounds().getMinX();
+        this.minY = sticks.getLayoutBounds().getMinY();
+        this.minZ = sticks.getLayoutBounds().getMinZ();
+//        this.centerX = balls.getLayoutBounds().getMinZ();
+
+        // populate focus choice
+        controller.getFocusChoice().getItems().clear();
+        controller.getFocusChoice().getItems().add("All");
+        model.getProtein().get(0).forEach( chain ->  controller.getFocusChoice().getItems().add(String.valueOf(chain.getChainID())));
+
+        controller.getColorChoice().valueProperty().addListener(e -> {
+                    if ((controller.getColorChoice().getValue() != null))
+                    balls.changeColor(controller.getColorChoice().getValue(), controller);
+        }
+
         );
+        controller.getFocusChoice().setValue("All");
+
 
 //        figure.getChildren().addAll(mesh, sticks, balls);
         figure.getChildren().add(sticks);
         figure.getChildren().add(balls);
         figure.getChildren().add(mesh);
+//         figure.getChildren().addAll(mesh.getChildren());
+
+        controller.getFocusChoice().valueProperty().addListener( e ->
+                balls.highlightChain(controller.getFocusChoice().getValue(),
+                        controller.getColorChoice().getValue()
+
+                ) );
 
         return figure;
     }
+
+
 
     public Camera setupCamera(WindowController controller) {
         var camera = new PerspectiveCamera(true);

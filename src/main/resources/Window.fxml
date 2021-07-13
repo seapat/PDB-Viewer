@@ -15,11 +15,11 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.chart.StackedBarChart?>
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CoV2StructureExplorer.view.WindowController">
     <MenuBar>
@@ -52,43 +52,53 @@
             </HBox>
         </Tab>
         <Tab closable="false" text="Report">
-        <TextArea fx:id="abstractContent" editable="false" wrapText="true" />
+            <TextArea fx:id="abstractContent" editable="false" wrapText="true" />
         </Tab>
         <Tab fx:id="chartTab" closable="false" text="Chart">
-<!--            <StackedBarChart fx:id="staticChart" />-->
+            <!--            <StackedBarChart fx:id="staticChart" />-->
         </Tab>
         <Tab closable="false" text="Visualisation">
-         <content>
-            <VBox>
-               <children>
-                  <ToolBar>
-                     <items>
-                        <CheckBox fx:id="atomsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Atoms" />
-                        <Slider fx:id="radiusScale" max="1.5" min="0.5" prefWidth="100.0" value="1.0" />
-                        <CheckBox fx:id="bondsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Bonds" />
-                        <Slider fx:id="diameterScale" blockIncrement="50" max="15.0" min="5.0" prefWidth="100.0" value="10.0" />
-                        <CheckBox fx:id="ribbonChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Ribbon" />
-                        <Pane HBox.hgrow="ALWAYS" />
-                        <Label nodeOrientation="LEFT_TO_RIGHT" text="Color" />
-                        <ChoiceBox fx:id="colorChoice" nodeOrientation="LEFT_TO_RIGHT" />
-                        <Label fx:id="modelLabel" nodeOrientation="LEFT_TO_RIGHT" text="Model" />
-                        <ChoiceBox fx:id="modelChoice" nodeOrientation="LEFT_TO_RIGHT" />
-                     </items>
-                  </ToolBar>
-                  <StackPane VBox.vgrow="ALWAYS">
-                     <children>
-                        <Pane fx:id="selectionPane" mouseTransparent="true" prefHeight="200.0" prefWidth="200.0" />
-                        <Pane fx:id="figurePane" style="-fx-background-color: TRANSPARENT;" />
-                     </children>
-                  </StackPane>
-                  <ToolBar prefHeight="40.0" prefWidth="200.0">
-                     <items>
-                        <Label fx:id="infoLabel" text="Info" />
-                     </items>
-                  </ToolBar>
-               </children>
-            </VBox>
-         </content>
+            <content>
+                <VBox>
+                    <children>
+                        <ToolBar>
+                            <items>
+                                <CheckBox fx:id="atomsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Atoms" />
+                                <Slider fx:id="radiusScale" max="1.5" min="0.5" prefWidth="100.0" value="1.0" />
+                                <CheckBox fx:id="bondsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Bonds" />
+                                <Slider fx:id="diameterScale" blockIncrement="50" max="15.0" min="5.0" prefWidth="100.0" value="10.0" />
+                                <CheckBox fx:id="ribbonChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Ribbon" />
+                                <Pane HBox.hgrow="ALWAYS" />
+                        <Label nodeOrientation="LEFT_TO_RIGHT" text="Focus" />
+                        <ChoiceBox fx:id="focusChoice" nodeOrientation="LEFT_TO_RIGHT" />
+                                <Label nodeOrientation="LEFT_TO_RIGHT" text="Color" />
+                                <ChoiceBox fx:id="colorChoice" nodeOrientation="LEFT_TO_RIGHT" />
+                                <Label fx:id="modelLabel" nodeOrientation="LEFT_TO_RIGHT" text="Model" />
+                                <ChoiceBox fx:id="modelChoice" nodeOrientation="LEFT_TO_RIGHT" />
+                            </items>
+                        </ToolBar>
+                        <StackPane VBox.vgrow="ALWAYS">
+                            <children>
+                                <Pane fx:id="figurePane" style="-fx-background-color: TRANSPARENT;" />
+                                <Pane fx:id="selectionPane" mouseTransparent="true" />
+                                <AnchorPane fx:id="legendPaneParent" depthTest="DISABLE" mouseTransparent="true" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: TRANSPARENT;">
+                                    <children>
+                                        <Pane fx:id="legendPane" layoutX="10.0" layoutY="10.0" mouseTransparent="true" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+<!--                                            <style>-fx-background-color: WHITE; -fx-border-color: BLACK;</style>-->
+                                        </Pane>
+                                    </children>
+                                </AnchorPane>
+
+                            </children>
+                        </StackPane>
+                        <ToolBar prefHeight="40.0" prefWidth="200.0">
+                            <items>
+                                <Label fx:id="infoLabel" text="Info" />
+                            </items>
+                        </ToolBar>
+                    </children>
+                </VBox>
+            </content>
         </Tab>
         <Tab text="Testing: To be removed" />
     </TabPane>

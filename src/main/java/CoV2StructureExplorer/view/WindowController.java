@@ -3,6 +3,7 @@ package CoV2StructureExplorer.view;
 import javafx.fxml.FXML;
 import javafx.scene.chart.StackedBarChart;
 import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 
 public class WindowController {
@@ -14,6 +15,12 @@ public class WindowController {
     public StackedBarChart<String, Number> getStaticChart() {
         return staticChart;
     }
+
+    @FXML
+    private AnchorPane legendPaneParent;
+
+    @FXML
+    private Pane legendPane;
 
     @FXML
     private StackedBarChart<String, Number> staticChart;
@@ -86,6 +93,13 @@ public class WindowController {
 
     @FXML
     private Button parseButton;
+
+    public ChoiceBox<String> getFocusChoice() {
+        return focusChoice;
+    }
+
+    @FXML
+    private ChoiceBox<String> focusChoice;
 
     public ListView<String> getPdbCodeList() {
         return pdbCodeList;
@@ -173,5 +187,13 @@ public class WindowController {
 
     public Pane getSelectionPane() {
         return selectionPane;
+    }
+
+    public AnchorPane getLegendPaneParent() {
+        return legendPaneParent;
+    }
+
+    public Pane getLegendPane() {
+        return legendPane;
     }
 }
