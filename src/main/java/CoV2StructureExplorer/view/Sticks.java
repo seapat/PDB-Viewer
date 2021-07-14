@@ -46,7 +46,7 @@ public class Sticks extends Group {
             cylinder.setScaleY(first.distance(second) / cylinder.getHeight());
 
             PhongMaterial material = new PhongMaterial();
-            material.setDiffuseColor(Color.BLACK);
+            material.setDiffuseColor(Color.GREY);
             material.setSpecularPower(0);
             cylinder.setMaterial(material);
 
