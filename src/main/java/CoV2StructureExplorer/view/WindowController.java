@@ -17,9 +17,6 @@ public class WindowController {
     }
 
     @FXML
-    private AnchorPane legendPaneParent;
-
-    @FXML
     private Pane legendPane;
 
     @FXML
@@ -93,6 +90,9 @@ public class WindowController {
 
     @FXML
     private Button parseButton;
+
+    @FXML
+    private Label focusLabel;
 
     public ChoiceBox<String> getFocusChoice() {
         return focusChoice;
@@ -189,11 +189,11 @@ public class WindowController {
         return selectionPane;
     }
 
-    public AnchorPane getLegendPaneParent() {
-        return legendPaneParent;
-    }
-
     public Pane getLegendPane() {
         return legendPane;
+    }
+
+    public Label getFocusLabel() {
+        return focusLabel;
     }
 }

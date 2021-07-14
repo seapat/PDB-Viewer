@@ -69,7 +69,7 @@
                                 <Slider fx:id="diameterScale" blockIncrement="50" max="15.0" min="5.0" prefWidth="100.0" value="10.0" />
                                 <CheckBox fx:id="ribbonChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Ribbon" />
                                 <Pane HBox.hgrow="ALWAYS" />
-                        <Label nodeOrientation="LEFT_TO_RIGHT" text="Focus" />
+                        <Label fx:id="focusLabel" nodeOrientation="LEFT_TO_RIGHT" text="Focus" />
                         <ChoiceBox fx:id="focusChoice" nodeOrientation="LEFT_TO_RIGHT" />
                                 <Label nodeOrientation="LEFT_TO_RIGHT" text="Color" />
                                 <ChoiceBox fx:id="colorChoice" nodeOrientation="LEFT_TO_RIGHT" />
@@ -81,7 +81,7 @@
                             <children>
                                 <Pane fx:id="figurePane" style="-fx-background-color: TRANSPARENT;" />
                                 <Pane fx:id="selectionPane" mouseTransparent="true" />
-                                <AnchorPane fx:id="legendPaneParent" depthTest="DISABLE" mouseTransparent="true" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: TRANSPARENT;">
+                                <AnchorPane depthTest="DISABLE" mouseTransparent="true" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: TRANSPARENT;">
                                     <children>
                                         <Pane fx:id="legendPane" layoutX="10.0" layoutY="10.0" mouseTransparent="true" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
 <!--                                            <style>-fx-background-color: WHITE; -fx-border-color: BLACK;</style>-->
@@ -93,7 +93,8 @@
                         </StackPane>
                         <ToolBar prefHeight="40.0" prefWidth="200.0">
                             <items>
-                                <Label fx:id="infoLabel" text="Info" />
+                        <Label text="Selected Residues: " />
+                                <Label fx:id="infoLabel" />
                             </items>
                         </ToolBar>
                     </children>
