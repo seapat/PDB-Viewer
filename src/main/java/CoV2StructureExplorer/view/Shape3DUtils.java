@@ -90,6 +90,10 @@ public class Shape3DUtils {
                 (float) cb2.getX(), (float) cb2.getY(), (float) cb2.getZ(),
         };
 
+        for (int i = 0; i < points.length; i++) {
+            points[i] = points[i] * 100;
+        }
+
         var faces = new int[]{
                 0, 0, 1, 1, 4, 4,
                 0, 0, 4, 4, 5, 5,
