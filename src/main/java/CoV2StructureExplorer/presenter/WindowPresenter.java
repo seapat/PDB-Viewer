@@ -30,18 +30,15 @@ public class WindowPresenter {
             return new pdbTextTask(model);
         }
     };
-    private WindowController controller;
+    private final WindowController controller;
     private final Service<PDBFile> modelService = new Service<>() {
         @Override
         protected Task<PDBFile> createTask() {
             return new changeModelTask(pdbCode, controller);
         }
     };
-    private Stage stage;
+    private final Stage stage;
     private ViewPresenter view;
-
-    private WindowPresenter() {
-    }
 
     public WindowPresenter(Stage stage, WindowController controller) {
         this.controller = controller;
@@ -59,8 +56,14 @@ public class WindowPresenter {
         controller.getModelLabel().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
         controller.getModelChoice().setValue(1);
 
-        // service to parse pdb file in background
+        var sizeChainChoiceSize = new SimpleIntegerProperty(controller.getFocusChoice().getItems().size(), "sizeChainChoiceSize");
+        controller.getFocusChoice().visibleProperty().bind(sizeChainChoiceSize.greaterThan(2));
+        controller.getFocusLabel().visibleProperty().bind(sizeChainChoiceSize.greaterThan(2));
+        controller.getFocusChoice().managedProperty().bind(sizeChainChoiceSize.greaterThan(2));
+        controller.getFocusLabel().managedProperty().bind(sizeChainChoiceSize.greaterThan(2));
+        controller.getFocusChoice().setValue("All");
 
+        // service to parse pdb file in background
         textService.setOnScheduled(v -> clearAll(controller));
         textService.setOnSucceeded(v -> {
             controller.getPdbText().setItems(FXCollections.observableArrayList(textService.getValue()));
@@ -71,14 +74,21 @@ public class WindowPresenter {
         modelService.setOnSucceeded(v -> {
             this.model = modelService.getValue();
 
+            // populate focus choice
+            controller.getFocusChoice().getItems().removeAll();
+            controller.getFocusChoice().getItems().add("All");
+            model.getProtein().get(0).forEach( chain ->  controller.getFocusChoice().getItems().add(String.valueOf(chain.getChainID())));
+            controller.getFocusChoice().setValue("All");
+
             // populate model choice
-            controller.getModelChoice().getItems().clear();
+            controller.getModelChoice().getItems().removeAll();
             for (var item : this.model.getProtein()) {
                 controller.getModelChoice().getItems().add(item.getId());
             }
-            controller.getModelChoice().setValue(1);
+            controller.getModelChoice().setValue(controller.getModelChoice().getItems().get(0));
             sizeModelChoiceSize.setValue(controller.getModelChoice().getItems().size());
-            controller.getInfoLabel().setText(model.getProtein().size() + " models found.");
+            sizeChainChoiceSize.setValue(controller.getFocusChoice().getItems().size());
+
 
             textService.restart();
 
@@ -97,6 +107,8 @@ public class WindowPresenter {
                         .not()
         );
         controller.getParseButton().setOnAction(e -> {
+            controller.getModelChoice().getItems().clear();
+            controller.getFocusChoice().getItems().clear();
 
             var enteredQuery = controller.getEntryField().getText();
             //String pdbCode;
@@ -135,6 +147,7 @@ public class WindowPresenter {
         this.menuButtons();
     }
 
+    // TODO: move to model
     private static void savePDB(Stage stage, WindowController controller, PDBFile model) {
         if (model == null) {
             var info = new Alert(Alert.AlertType.ERROR, "No pdb entry loaded!");
@@ -274,6 +287,7 @@ public class WindowPresenter {
         WindowController controller;
 
         changeViewTask(PDBFile model, WindowController controller) {
+
             this.view = new ViewPresenter(controller, model);
             this.controller = controller;
         }

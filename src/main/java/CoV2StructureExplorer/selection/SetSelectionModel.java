@@ -9,7 +9,7 @@ import java.util.HashSet;
 // SELECTION
 public class SetSelectionModel<T> implements SelectionModel<T> {
 
-    private ObservableSet<T> selectedObjects = FXCollections.observableSet(new HashSet<>());
+    private final ObservableSet<T> selectedObjects = FXCollections.observableSet(new HashSet<>());
 
     @Override
     public boolean select(T t) {
@@ -30,7 +30,7 @@ public class SetSelectionModel<T> implements SelectionModel<T> {
 
     @Override
     public void clearSelection() {
-        selectedObjects = FXCollections.observableSet(new HashSet<>());
+        selectedObjects.clear();
     }
 
     @Override

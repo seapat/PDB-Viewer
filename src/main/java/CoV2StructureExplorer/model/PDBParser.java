@@ -43,7 +43,7 @@ public class PDBParser {
     PDBParser(String pdbID, String pdbFile) {
 
         this.aaCompositionPerChain = new HashMap<>();
-        this.aaCompositionPerChain.put("Total", new HashMap<>());
+//        this.aaCompositionPerChain.put("Total", new HashMap<>());
         this.structure = new Structure(pdbID);
         int modelID = 0;
 
@@ -146,10 +146,10 @@ public class PDBParser {
                             .computeIfPresent(residue.getThreeLetter(), (k, v) -> v + 1);
                     aaCompositionPerChain.get(String.valueOf(chain.getChainID()))
                             .putIfAbsent(residue.getThreeLetter(), 1);
-                    aaCompositionPerChain.get("Total")
-                            .computeIfPresent(residue.getThreeLetter(), (k, v) -> v + 1);
-                    aaCompositionPerChain.get("Total")
-                            .putIfAbsent(residue.getThreeLetter(), 1);
+//                    aaCompositionPerChain.get("Total")
+//                            .computeIfPresent(residue.getThreeLetter(), (k, v) -> v + 1);
+//                    aaCompositionPerChain.get("Total")
+//                            .putIfAbsent(residue.getThreeLetter(), 1);
                 }
                 attachSecStructure(residue);
                 return residue;
@@ -290,30 +290,4 @@ public class PDBParser {
 //                new AbstractMap.SimpleEntry<>("MET", 0)
 //        ));
 //    }
-
-/* PDB format
-- 1 file == 1 Structure
-- MODEL record separates atoms of different models (coords of models differ)
-    - not present when file only contains one CoV2StructureExplore.CoV2StructureExplorer.model !!!
-    - if line.startsWith("MODEL"): append current CoV2StructureExplore.CoV2StructureExplorer.model and create new one
-    - ENDMDL denotes end of a CoV2StructureExplore.CoV2StructureExplorer.model
-- TER records denotes <END> of a chain
-    - if line.startsWith("TER") return chain;
-- ATOM denotes single Atom of a residue
-    - 13 - 16 denotes Atom code
-    - 7-11 denotes id
-    - 18-20 corresponding residue
-    - 31-38 x coordinate
-    - 39-46 y coord
-    - 47-54 z coord
-    - 27 contains chain id
-- Residues are runs of ATOMS with same 3-letter Residue code
-    - set type to the one of first atom
-    - ATOM 23 - 26 contains id of residue
-    - terminate once residue of ATOM changes (look ahead somehow without skipping the line!!!)
-- MASTER denotes prev-to-last line of file
-    - MASTER contains info about how many records are in there
-    - use to check if everything went smoothly
-- END denotes last line of file
- */
 }

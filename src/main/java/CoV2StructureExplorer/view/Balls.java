@@ -6,9 +6,15 @@ import CoV2StructureExplorer.model.Residue;
 import CoV2StructureExplorer.model.Structure;
 import CoV2StructureExplorer.selection.SetSelectionModel;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Sphere;
 import javafx.scene.text.Font;
@@ -23,7 +29,7 @@ public class Balls extends Group {
 
     //sphere.setDrawMode(DrawMode.LINE) to see mesh used for drawing
 
-    private final static Map<Object, Color> atomColors = Map.ofEntries(
+    private static final Map<Object, Color> atomColors = Map.ofEntries(
             // single bonded radii found on wikipedia "covalent radius"
             new AbstractMap.SimpleEntry<>('O', Color.RED),
             new AbstractMap.SimpleEntry<>('C', Color.DIMGRAY),
@@ -32,7 +38,7 @@ public class Balls extends Group {
             new AbstractMap.SimpleEntry<>('P', Color.ORANGE),
             new AbstractMap.SimpleEntry<>('H', Color.WHITE)
     );
-    private final static Map<Object, Color> secStrucColors = Map.ofEntries(
+    private static final Map<Object, Color> secStrucColors = Map.ofEntries(
             // is it ok to check for Enums here which are declared in the model? maybe
             new AbstractMap.SimpleEntry<>("COIL", Color.LIGHTGREEN),
             new AbstractMap.SimpleEntry<>("SHEET", Color.YELLOW),
@@ -41,20 +47,23 @@ public class Balls extends Group {
     );
 
     // create list of colors, iterator is renewed once the list ends
-    private final static List<Color> chainColors = Collections.synchronizedList(new ArrayList<>(Arrays.asList(
-            Color.DARKMAGENTA, Color.AQUAMARINE, Color.HOTPINK, Color.INDIANRED, Color.INDIGO, Color.LIGHTGREEN, Color.YELLOW,
+    private static final ArrayList<Color> chainColors = new ArrayList<>(Arrays.asList(
+//            Color.DARKMAGENTA,
+            Color.AQUAMARINE, Color.HOTPINK, Color.INDIANRED, Color.INDIGO, Color.LIGHTGREEN, Color.YELLOW,
             Color.MEDIUMPURPLE, Color.ORANGE, Color.YELLOW, Color.PALEVIOLETRED, Color.LIGHTGREEN, Color.CORNFLOWERBLUE
-    )));
-    private static Iterator<Color> iterateChainColors = chainColors.iterator();
-    private static Color currIterColor = iterateChainColors.next();
+    ));
+//    private final ObservableSet<Residue> selectedResidueNames = FXCollections.observableSet(new LinkedHashSet<>());
+    private final StringProperty selectedResiduesProp;
     private final HashMap<Chain, HashMap<Residue, HashMap<Atom, Sphere>>> modelToView = new HashMap<>();
+    private Iterator<Color> iterateChainColors = chainColors.iterator();
+    private Color currIterColor = iterateChainColors.next();
 
-    public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice, SetSelectionModel<Atom> selectedAtoms) {
+
+    public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice, SetSelectionModel<Residue> selectedResidues) { //<Sphere>
+
+        selectedResiduesProp = new SimpleStringProperty(selectedResidues, "StringBuilder");
 
         for (var chain : pdb.get(modelChoice - 1)) {
-            if (!iterateChainColors.hasNext()) {
-                iterateChainColors = chainColors.iterator();
-            }
             modelToView.put(chain, new HashMap<>());
             var currChain = modelToView.get(chain);
             for (var residue : chain) {
@@ -73,31 +82,48 @@ public class Balls extends Group {
                     // SELECTION
                     sphere.setOnMouseClicked(e -> {
                         if (!e.isShiftDown()) {
-                            selectedAtoms.clearSelection();
+                            selectedResidues.clearSelection();
                         }
-                        residue.values().forEach(selectedAtoms::select);
+                        selectedResidues.select(residue);
+                        selectedResiduesProp.setValue(String.join("",
+                                selectedResidues.getSelectedItems().stream()
+                                        .map(Residue::getThreeLetter)
+                                        .map(code -> code += " ")
+                                        .toList()));
                         System.out.println("clicking is recognized");
-                        System.out.println(selectedAtoms.getSelectedItems());
+                        System.out.println(selectedResidues.getSelectedItems());
                     });
 
                     // Add twice, once to Group, other time to the hashmap to access subsets of spheres
                     this.getChildren().add(sphere);
                     curRes.put(atom, sphere);
                 }
-
             }
         }
         System.out.println("balls: " + this.getChildren().size());
+    }
+
+    public ObservableValue<? extends String> getSelectedResiduesProp() {
+        return selectedResiduesProp;
+    }
+
+    public StringProperty selectedResiduesPropProperty() {
+        return selectedResiduesProp;
     }
 
     public HashMap<Chain, HashMap<Residue, HashMap<Atom, Sphere>>> getModelToView() {
         return modelToView;
     }
 
-    public void changeColor(String colorChoice, WindowController controller) {
+    public void changeColor(WindowController controller) {
 
-        Character lastChain = null;
+        var colorChoice = controller.getColorChoice().getValue();
+
+        Chain lastChain = null;
         Residue lastResidue = null;
+        Color color;
+        // reset color choices, make coloring reproducible
+        iterateChainColors = chainColors.iterator();
 
         for (var chain : modelToView.entrySet()) {
             for (var residues : chain.getValue().entrySet()) {
@@ -106,52 +132,14 @@ public class Balls extends Group {
                     var sphere = atomSphere.getValue();
 
                     // reset colors if all are used up
-                    if (!iterateChainColors.hasNext()) {
-                        iterateChainColors = chainColors.iterator();
-                    }
-
-                    // go to next chain
-                    if ((colorChoice.equals("Chains") && lastChain != null && lastChain != atom.getChain()) ||
-                            (colorChoice.equals("Residue") && lastResidue != null && !lastResidue.equals(atom.getResidue()))) {
-                        currIterColor = iterateChainColors.next();
-                    }
-
-                    Color color;
-                    color = this.getColor(colorChoice, atomSphere);
-
+                    progressIterator(colorChoice, lastChain, lastResidue, atom);
+                    color = getColor(colorChoice, atom);
                     sphere.setMaterial(new PhongMaterial(color));
-
-                    lastChain = atom.getChain();
+                    lastChain = atom.getResidue().getChain();
                     lastResidue = atom.getResidue();
                 }
             }
         }
-
-//        for (var atomSphere : atomSpheres.entrySet()) {
-//            var atom = atomSphere.getKey();
-//            var sphere = atomSphere.getValue();
-//
-//            // reset colors if all are used up
-//            if (!iterateChainColors.hasNext()) {
-//                iterateChainColors = chainColors.iterator();
-//            }
-//
-//            // go to next chain
-//            if ((colorChoice.equals("Chains") && lastChain != null && lastChain != atom.getChain()) ||
-//                    (colorChoice.equals("Residue") && lastResidue != null && !lastResidue.equals(atom.getResidue())))
-//            {
-//                currIterColor = iterateChainColors.next();
-//            }
-//
-//            Color color;
-//            color = this.getColor(colorChoice, currIterColor, atomSphere);
-//
-//            sphere.setMaterial(new PhongMaterial(color));
-//
-//            lastChain = atom.getChain();
-//            lastResidue = atom.getResidue();
-//        }
-
         // show or remove corresponding legend
         switch (colorChoice) {
             case "Structure" -> changeLegend(controller, secStrucColors);
@@ -159,22 +147,22 @@ public class Balls extends Group {
             default -> changeLegend(controller, atomColors);
         }
 
-        // reset color choices, make coloring reproducible
-        iterateChainColors = chainColors.iterator();
+
     }
 
-    private Color getColor(String colorChoice, Map.Entry<Atom, Sphere> atomSphere) {
+    public Color getColor(String colorChoice, Atom atom) {
 
         Color color;
         switch (colorChoice) {
-            case "Structure" -> color = secStrucColors.getOrDefault(atomSphere.getKey().getStructureType().toString(), Color.PLUM);
+            case "Structure" -> color = secStrucColors.getOrDefault(atom.getStructureType().toString(), Color.PLUM);
             case "Chains", "Residue" -> color = currIterColor;
-            default -> color = atomColors.getOrDefault(atomSphere.getKey().getSimpleType(), Color.PLUM);
+            default -> color = atomColors.getOrDefault(atom.getSimpleType(), Color.PLUM);
         }
 
         return color;
     }
 
+    //TODO maybe move this to the vie presenter?
     private void changeLegend(WindowController controller, Map<Object, Color> colorMap) {
         // create legends for atoms and sec. structure
         var recSize = 20;
@@ -193,9 +181,11 @@ public class Balls extends Group {
         AtomicReference<Integer> idx = new AtomicReference<>(0);
         legendItems.forEach((key, value) -> {
             key.setY(idx.get() * (recSize + spacer));
-
             key.setStroke(Color.BLACK);
-            value.setX(value.getX() + recSize + spacer);
+
+            value.setStyle("-fx-inner-fill: white");
+            value.setStroke(Color.BLACK);
+            value.setX(recSize + spacer);
             value.setY(key.getY() + spacer * 3);
             value.setFont(Font.font("calibri light", FontWeight.EXTRA_LIGHT, FontPosture.REGULAR, 13));
             controller.getLegendPane().getChildren().add(key);
@@ -205,22 +195,46 @@ public class Balls extends Group {
         });
     }
 
-    public void highlightChain(String chainChoice, String colorChoice) {
+    public void highlightChain(WindowController controller) {
+
+        var colorChoice = controller.getColorChoice().getValue();
+        var chainChoice = controller.getFocusChoice().getValue();
+
+        Chain lastChain = null;
+        Residue lastResidue = null;
+        iterateChainColors = chainColors.iterator();
 
         for (var chain : modelToView.entrySet()) {
             for (var residues : chain.getValue().entrySet()) {
                 for (var atomSphere : residues.getValue().entrySet()) {
                     var atom = atomSphere.getKey();
                     var sphere = atomSphere.getValue();
-                    var color = getColor(colorChoice, atomSphere);
+                    var color = getColor(colorChoice, atom);
+
+                    progressIterator(colorChoice, lastChain, lastResidue, atom);
 
                     if (chain.getKey().getChainID() != chainChoice.charAt(0) && !chainChoice.equals("All")) {
-                        sphere.setMaterial(new PhongMaterial(color.deriveColor(1, 0, 0.5, 0.5)));
+                        sphere.setMaterial(new PhongMaterial(Color.hsb(0.5, 0, 0.1, 0.1))); // color.deriveColor(1, 0, 0.5, 0.5)
+
                     } else {
                         sphere.setMaterial(new PhongMaterial(color));
                     }
+                    lastChain = atom.getResidue().getChain();
+                    lastResidue = atom.getResidue();
                 }
             }
+        }
+    }
+
+    private void progressIterator(String colorChoice, Chain lastChain, Residue lastResidue, Atom atom) {
+        if (!iterateChainColors.hasNext()) {
+            iterateChainColors = chainColors.iterator();
+        }
+
+        if (colorChoice.equals("Chains") && lastChain != null && !lastChain.equals(atom.getResidue().getChain())
+                ||
+                colorChoice.equals("Residue") && lastResidue != null && !lastResidue.equals(atom.getResidue())) {
+            currIterColor = iterateChainColors.next();
         }
     }
 }

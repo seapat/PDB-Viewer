@@ -55,7 +55,7 @@ public class PDBFile {
         for (var chain: this.structure.get(0)) {
             var sequence = new StringBuilder();
             for (var residue : chain) {
-                    sequence.append(residue.getOneLetter());
+                    sequence.append(residue.getOneLetter() == null ? residue.getThreeLetter() : residue.getOneLetter() );
             }
             sequenceMap.putIfAbsent(chain, sequence.toString());
         }

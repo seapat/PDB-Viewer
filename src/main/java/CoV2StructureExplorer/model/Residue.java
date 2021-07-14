@@ -45,7 +45,7 @@ public class Residue extends HashMap<String, Atom> {
         this.threeLetter = threeLetter;
         this.chain = chain;
         this.secStructure = StructureType.COIL;
-        this.oneLetter = lookUpAminoAcids.getOrDefault(this.threeLetter, this.getThreeLetter().charAt(0));
+        this.oneLetter = lookUpAminoAcids.getOrDefault(this.threeLetter, null); // this.getThreeLetter().charAt(0)
     }
 
     public String getThreeLetter() {

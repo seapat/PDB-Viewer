@@ -1,71 +1,64 @@
 package CoV2StructureExplorer.selection;
 
+import CoV2StructureExplorer.model.Atom;
+import CoV2StructureExplorer.view.Balls;
+import CoV2StructureExplorer.view.WindowController;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.WeakInvalidationListener;
-import javafx.beans.property.Property;
-import javafx.scene.layout.Pane;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape3D;
+import javafx.scene.image.Image;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.DrawMode;
 
 import javafx.collections.SetChangeListener;
-import java.util.HashMap;
-import java.util.List;
+import javafx.scene.shape.Sphere;
+
+
+import java.util.Map;
+import java.util.Set;
+
 import java.util.function.Function;
 
 // SELECTION
 public class SelectionDots<T> {
 
-    public static<T> void setup(Pane selectionPane , SetSelectionModel<T> selectionModel , //SetSelectionModel<T> selectionModel
-                                 Function<T, List<? extends Shape3D>> itemToDots, Property ...properties ) {
-        var shapeDots = new HashMap<Shape3D, Rectangle>( );
+    public static<T> void setup(Balls balls , SetSelectionModel<T> selectionModel , //SetSelectionModel<T> selectionModel
+                                Function<T, Set<Map.Entry<Atom, Sphere>>> itemToDots, WindowController controller) {
 
-        // FIXME: it seems that this listener is never triggered according to printouts, clicking is recognized and the Set of selected items is updated properly
         selectionModel.getSelectedItems().addListener((SetChangeListener<T>) c -> {
-            System.out.println("Listener is triggered");
+
             if (c.wasRemoved()) {
                 Platform.runLater ( ( ) -> {
                     for ( var shape : itemToDots.apply (c.getElementRemoved())) {
-                        selectionPane.getChildren( ).remove ( shapeDots.get( shape ) ) ;
-                        shapeDots.remove(shape);
+//                        shape.getValue().setDrawMode(DrawMode.FILL);
+                        shape.getValue().setMaterial( new PhongMaterial(balls.getColor(controller.getColorChoice().getValue(),
+                                shape.getKey())));
                     }
                 } ) ;
             }
             if (c.wasAdded()) {
+                var items = itemToDots.apply(c.getElementAdded());
                 Platform.runLater ( ( ) -> {
-                    for ( var shape : itemToDots.apply(c.getElementAdded())) {
-                        var dot = createDotWithBinding(selectionPane , shape , properties ) ;
-                        selectionPane.getChildren( ).add(dot) ;
-                        shapeDots.put ( shape ,dot ) ;
+
+                    for ( var shape : items) {
+//                        balls.getModelToView().values().forEach();
+//                        for (var chain : balls.getModelToView().entrySet()) {
+//                            for (var residue : chain.getValue().entrySet()){
+//                                for (var atom: residue.getValue().entrySet()){
+//                                    if (!items.contains(atom)){
+//                                        atom.getValue().setDrawMode(DrawMode.LINE);
+//                                    }
+//                                }
+//                            }
+//                        }//);
+                        var selectedImage = new PhongMaterial();
+                        selectedImage.setDiffuseMap(new Image("/pinkblack2.png", true));
+                        shape.getValue().setMaterial(selectedImage);
                     }
-                } ) ;
+
+                });
+
             }
+
         } ) ;
-    }
-
-
-    private static Rectangle createDotWithBinding ( Pane selectionPane, Shape3D shape, final Property ...properties ) {
-        final var dot = new Rectangle( );
-        InvalidationListener listener = a -> updateDot(dot , selectionPane, shape ) ;
-
-        // attach listener to properties, then call it once (triggers updateDot()), then invalidate it
-        for ( var property: properties) {
-            property.addListener(new WeakInvalidationListener( listener ) ) ;
-        }
-        dot.setUserData(listener);
-        listener.invalidated( null) ;
-        return dot;
-    }
-
-    private static void updateDot(Rectangle dot, Pane pane, Shape3D shape) {
-        var boundsScreen = shape.localToScreen(shape.getBoundsInLocal());
-        var paneBoundsScreen = pane .localToScreen(pane.getBoundsInLocal());
-        var xInScene = boundsScreen.getMinX() - paneBoundsScreen.getMinX();
-        var yInScene = boundsScreen.getMinY() - paneBoundsScreen.getMinY();
-        dot.setX(xInScene);
-        dot.setY(yInScene);
-        dot.setWidth(boundsScreen.getWidth());
-        dot.setHeight(boundsScreen.getHeight());
     }
 
     /*
