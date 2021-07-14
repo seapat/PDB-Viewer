@@ -9,6 +9,8 @@ import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AminoAcidComposition {
 
@@ -18,9 +20,11 @@ public class AminoAcidComposition {
     // loop over data structure: each chain one bar, each chains value: one series
     // NOTE: sort series by size
 
+    //TODO draw single barchar instead of stacked if only one chain
+
     public static Node setup(PDBFile model, WindowController controller){
 
-        var data = model.getAaComposition();
+        var data = flip( model.getAaComposition());
 
         var yAxis = new CategoryAxis();
         yAxis.setLabel("Chain");
@@ -43,9 +47,23 @@ public class AminoAcidComposition {
             chart.getData().add(series);
         }
 
+        if (chart.getData().size() == 2) chart.getData().remove(1);
+
         return chart;
     }
 
-    // TODO: overwrite colors via css
+    public static Map<String, HashMap<String, Integer>> flip(HashMap<String, Map<String, Integer>> map){
+        Map<String, HashMap<String, Integer>> result = new HashMap<>();
+        for (var key : map.keySet()){
+            for (var key2 : map.get(key).keySet()){
+                if (!result.containsKey(key2)){
+                    result.put(key2, new HashMap<>());
+                }
+
+                result.get(key2).put(key, map.get(key).get(key2));
+            }
+        }
+        return result;
+    }
 
 }
