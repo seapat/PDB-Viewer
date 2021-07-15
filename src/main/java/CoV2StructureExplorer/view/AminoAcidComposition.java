@@ -20,7 +20,7 @@ public class AminoAcidComposition {
     // loop over data structure: each chain one bar, each chains value: one series
     // NOTE: sort series by size
 
-    //TODO draw single barchar instead of stacked if only one chain
+    //TODO draw single barchart instead of stacked if only one chain
 
     public static Node setup(PDBFile model, WindowController controller){
 
