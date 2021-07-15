@@ -11,7 +11,7 @@ public class Atom {
     private final String complexType;
     private final char simpleType;
     private final Residue residue;
-    private final char chain;
+    private final Chain chain;
     private final Position position;
     private final ArrayList<Atom> bonds;
     private StructureType secStructure;
@@ -37,7 +37,7 @@ public class Atom {
         this.residue = residue;
         this.complexType = complexType;
         this.simpleType = simpleType;
-        this.chain = chain;
+        this.chain = residue.getChain();
         this.position = position;
         this.bonds = new ArrayList<>();
         this.secStructure = StructureType.COIL;
@@ -56,9 +56,7 @@ public class Atom {
         return residue;
     }
 
-    public char getChain() {
-        return chain;
-    }
+    public Chain getChain() { return chain; }
 
     public Position getPosition() {
         return position;
