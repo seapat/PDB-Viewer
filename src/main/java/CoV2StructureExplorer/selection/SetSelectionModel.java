@@ -16,7 +16,6 @@ public class SetSelectionModel<T> implements SelectionModel<T> {
         return selectedObjects.add(t);
     }
 
-    // FIXME: correct implementation?
     @Override
     public boolean setSelected(T t, boolean select) {
         if (select) { return selectedObjects.add(t); }
