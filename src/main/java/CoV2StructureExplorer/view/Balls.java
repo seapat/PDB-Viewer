@@ -4,26 +4,18 @@ import CoV2StructureExplorer.model.Atom;
 import CoV2StructureExplorer.model.Chain;
 import CoV2StructureExplorer.model.Residue;
 import CoV2StructureExplorer.model.Structure;
+import CoV2StructureExplorer.presenter.ViewPresenter;
 import CoV2StructureExplorer.selection.SetSelectionModel;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.DrawMode;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Sphere;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Balls extends Group {
 
@@ -48,16 +40,24 @@ public class Balls extends Group {
 
     // create list of colors, iterator is renewed once the list ends
     private static final ArrayList<Color> chainColors = new ArrayList<>(Arrays.asList(
-//            Color.DARKMAGENTA,
-            Color.AQUAMARINE, Color.HOTPINK, Color.INDIANRED, Color.INDIGO, Color.LIGHTGREEN, Color.YELLOW,
-            Color.MEDIUMPURPLE, Color.ORANGE, Color.YELLOW, Color.PALEVIOLETRED, Color.LIGHTGREEN, Color.CORNFLOWERBLUE
+            Color.DARKMAGENTA,
+            Color.AQUAMARINE,
+            Color.HOTPINK,
+            Color.INDIANRED,
+            Color.INDIGO,
+            Color.LIGHTGREEN,
+            Color.YELLOW,
+            Color.MEDIUMPURPLE,
+            Color.ORANGE,
+            Color.PALEVIOLETRED,
+            Color.CORNFLOWERBLUE
     ));
-//    private final ObservableSet<Residue> selectedResidueNames = FXCollections.observableSet(new LinkedHashSet<>());
+
+
     private final StringProperty selectedResiduesProp;
     private final HashMap<Chain, HashMap<Residue, HashMap<Atom, Sphere>>> modelToView = new HashMap<>();
-    private Iterator<Color> iterateChainColors = chainColors.iterator();
+    private final CyclicIterator<Color, ArrayList<Color>> iterateChainColors = new CyclicIterator<>(chainColors); //chainColors.iterator();
     private Color currIterColor = iterateChainColors.next();
-
 
     public Balls(Structure pdb, ReadOnlyDoubleProperty radiusScale, Integer modelChoice, SetSelectionModel<Residue> selectedResidues) { //<Sphere>
 
@@ -91,7 +91,7 @@ public class Balls extends Group {
                                         .map(code -> code += " ")
                                         .toList()));
                         System.out.println("clicking is recognized");
-                        System.out.println(selectedResidues.getSelectedItems());
+//                        System.out.println(selectedResidues.getSelectedItems());
                     });
 
                     // Add twice, once to Group, other time to the hashmap to access subsets of spheres
@@ -117,13 +117,12 @@ public class Balls extends Group {
 
     public void changeColor(WindowController controller) {
 
+        iterateChainColors.reset();
+        currIterColor = iterateChainColors.next();
         var colorChoice = controller.getColorChoice().getValue();
 
-        Chain lastChain = null;
-        Residue lastResidue = null;
         Color color;
-        // reset color choices, make coloring reproducible
-        iterateChainColors = chainColors.iterator();
+        Atom prevAtom = null;
 
         for (var chain : modelToView.entrySet()) {
             for (var residues : chain.getValue().entrySet()) {
@@ -131,110 +130,104 @@ public class Balls extends Group {
                     var atom = atomSphere.getKey();
                     var sphere = atomSphere.getValue();
 
-                    // reset colors if all are used up
-                    progressIterator(colorChoice, lastChain, lastResidue, atom);
-                    color = getColor(colorChoice, atom);
+                    color = getColor(colorChoice, atom, prevAtom);
+
                     sphere.setMaterial(new PhongMaterial(color));
-                    lastChain = atom.getResidue().getChain();
-                    lastResidue = atom.getResidue();
+                    prevAtom = atom;
                 }
             }
         }
         // show or remove corresponding legend
         switch (colorChoice) {
-            case "Structure" -> changeLegend(controller, secStrucColors);
+            case "Structure" -> ViewPresenter.changeLegend(controller, secStrucColors);
             case "Chains", "Residue" -> controller.getLegendPane().setVisible(false);
-            default -> changeLegend(controller, atomColors);
+            default -> ViewPresenter.changeLegend(controller, atomColors);
         }
-
-
     }
 
-    public Color getColor(String colorChoice, Atom atom) {
+    public Color getColor(String colorChoice, Atom atom, Atom prev) {
 
         Color color;
         switch (colorChoice) {
             case "Structure" -> color = secStrucColors.getOrDefault(atom.getStructureType().toString(), Color.PLUM);
-            case "Chains", "Residue" -> color = currIterColor;
+            case "Chains" -> {
+                if (prev != null && !atom.getChain().equals(prev.getChain())) {
+                    currIterColor = iterateChainColors.next();
+                }
+                color = currIterColor;
+            }
+            case "Residue" -> {
+                if (prev != null && !atom.getResidue().equals(prev.getResidue())) {
+                    currIterColor = iterateChainColors.next();
+                }
+                color = currIterColor;
+            }
             default -> color = atomColors.getOrDefault(atom.getSimpleType(), Color.PLUM);
         }
-
         return color;
     }
 
-    //TODO maybe move this to the vie presenter?
-    private void changeLegend(WindowController controller, Map<Object, Color> colorMap) {
-        // create legends for atoms and sec. structure
-        var recSize = 20;
-        var spacer = 5;
+    public Group highlightChain(WindowController controller) {
+        var selection = new Group();
 
-        controller.getLegendPane().setVisible(true);
-        controller.getLegendPane().getChildren().clear();
-
-        var legendItems = new LinkedHashMap<Rectangle, Text>();
-        // TreeMap + LinkedHashMap allow deterministic ordering of keys
-        new TreeMap<>(colorMap).forEach((key, value) -> legendItems.put(
-                new Rectangle(recSize, recSize, value),
-                new Text(key.toString().substring(0, 1).toUpperCase() + key.toString().substring(1).toLowerCase())
-        ));
-
-        AtomicReference<Integer> idx = new AtomicReference<>(0);
-        legendItems.forEach((key, value) -> {
-            key.setY(idx.get() * (recSize + spacer));
-            key.setStroke(Color.BLACK);
-
-            value.setStyle("-fx-inner-fill: white");
-            value.setStroke(Color.BLACK);
-            value.setX(recSize + spacer);
-            value.setY(key.getY() + spacer * 3);
-            value.setFont(Font.font("calibri light", FontWeight.EXTRA_LIGHT, FontPosture.REGULAR, 13));
-            controller.getLegendPane().getChildren().add(key);
-            controller.getLegendPane().getChildren().add(value);
-
-            idx.getAndSet(idx.get() + 1);
-        });
-    }
-
-    public void highlightChain(WindowController controller) {
+        iterateChainColors.reset();
+        currIterColor = iterateChainColors.next();
 
         var colorChoice = controller.getColorChoice().getValue();
         var chainChoice = controller.getFocusChoice().getValue();
 
-        Chain lastChain = null;
-        Residue lastResidue = null;
-        iterateChainColors = chainColors.iterator();
+        Atom prevAtom = null;
 
         for (var chain : modelToView.entrySet()) {
             for (var residues : chain.getValue().entrySet()) {
                 for (var atomSphere : residues.getValue().entrySet()) {
                     var atom = atomSphere.getKey();
                     var sphere = atomSphere.getValue();
-                    var color = getColor(colorChoice, atom);
-
-                    progressIterator(colorChoice, lastChain, lastResidue, atom);
+                    var color = getColor(colorChoice, atom, prevAtom);
 
                     if (chain.getKey().getChainID() != chainChoice.charAt(0) && !chainChoice.equals("All")) {
-                        sphere.setMaterial(new PhongMaterial(Color.hsb(0.5, 0, 0.1, 0.1))); // color.deriveColor(1, 0, 0.5, 0.5)
 
+                        sphere.setMaterial(new PhongMaterial(Color.hsb(0.5, 0, 0.1, 0.1))); // color.deriveColor(1, 0, 0.5, 0.5)
+//                        sphere.setVisible(false);
                     } else {
+//                        sphere.setVisible(true);
                         sphere.setMaterial(new PhongMaterial(color));
                     }
-                    lastChain = atom.getResidue().getChain();
-                    lastResidue = atom.getResidue();
+                    prevAtom = atom;
                 }
             }
         }
+        return selection;
     }
 
-    private void progressIterator(String colorChoice, Chain lastChain, Residue lastResidue, Atom atom) {
-        if (!iterateChainColors.hasNext()) {
-            iterateChainColors = chainColors.iterator();
+    public static class CyclicIterator<E, C extends Collection<E>> implements Iterator<E> {
+        final private C mElements;
+        private Iterator<E> mIterator;
+
+        public CyclicIterator(C elements) {
+            mElements = elements;
+            mIterator = elements.iterator();
         }
 
-        if (colorChoice.equals("Chains") && lastChain != null && !lastChain.equals(atom.getResidue().getChain())
-                ||
-                colorChoice.equals("Residue") && lastResidue != null && !lastResidue.equals(atom.getResidue())) {
-            currIterColor = iterateChainColors.next();
+        public void reset() {
+            mIterator = mElements.iterator();
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (!mIterator.hasNext()) {
+                mIterator = mElements.iterator();
+            }
+            return mIterator.hasNext();
+        }
+
+        @Override
+        public E next() {
+            if (!mIterator.hasNext()) {
+                mIterator = mElements.iterator();
+            }
+            return mIterator.next();
         }
     }
+
 }
