@@ -15,6 +15,10 @@ public class Window {
             var fxmlLoader = new FXMLLoader();
             root = fxmlLoader.load(ins);
             controller = fxmlLoader.getController();
+
+            // setup ChoiceBox; this is here because it never changes, could be in fxml as well
+            controller.getColorChoice().getItems().addAll("Atoms", "Structure", "Chains", "Residue");
+            controller.getColorChoice().setValue("Atoms");
         }
     }
 
