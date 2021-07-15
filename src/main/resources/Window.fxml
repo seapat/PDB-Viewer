@@ -15,6 +15,7 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
@@ -31,7 +32,15 @@
             <MenuItem fx:id="exitMenu" mnemonicParsing="false" text="Exit Application" />
         </Menu>
         <Menu mnemonicParsing="false" text="Edit">
-            <MenuItem mnemonicParsing="false" text="Delete" />
+            <MenuItem fx:id="undoMenu" mnemonicParsing="false" text="Undo">
+            <accelerator>
+               <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator></MenuItem>
+         <MenuItem fx:id="redoMenu" mnemonicParsing="false" text="Redo">
+            <accelerator>
+               <KeyCodeCombination alt="UP" code="Y" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+         </MenuItem>
         </Menu>
         <Menu mnemonicParsing="false" text="Help">
             <MenuItem fx:id="aboutMenu" mnemonicParsing="false" text="About" />
@@ -101,6 +110,5 @@
                 </VBox>
             </content>
         </Tab>
-        <Tab text="Testing: To be removed" />
     </TabPane>
 </VBox>
