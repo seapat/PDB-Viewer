@@ -17,6 +17,12 @@ public class WindowController {
     }
 
     @FXML
+    private MenuItem undoMenu;
+
+    @FXML
+    private MenuItem redoMenu;
+
+    @FXML
     private Pane legendPane;
 
     @FXML
@@ -195,5 +201,13 @@ public class WindowController {
 
     public Label getFocusLabel() {
         return focusLabel;
+    }
+
+    public MenuItem getUndoMenu() {
+        return undoMenu;
+    }
+
+    public MenuItem getRedoMenu() {
+        return redoMenu;
     }
 }
