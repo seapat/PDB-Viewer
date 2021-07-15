@@ -1,5 +1,10 @@
 package CoV2StructureExplorer.model;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +41,31 @@ public class PDBFile {
     private final String content;
     private final Structure structure;
     private final String abstractText;
+
+    public static void savePDB(Stage stage, PDBFile model) {
+        if (model == null) {
+            var info = new Alert(Alert.AlertType.ERROR, "No pdb entry loaded!");
+            info.showAndWait();
+        } else {
+            DirectoryChooser chooser = new DirectoryChooser();
+            chooser.setTitle("Please choose saving location");
+            File selectedDirectory = chooser.showDialog(stage);
+            var path = selectedDirectory.toPath();
+
+            // only save if user confirms chosen path
+            var alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("");
+            alert.setHeaderText("Do you want to save the file?");
+            alert.setContentText("directory: " + path);
+            alert.showAndWait()
+                    .filter(response -> response == ButtonType.OK)
+                    .ifPresent(response -> {
+                        model.savePDBFile(path);
+                        var info = new Alert(Alert.AlertType.INFORMATION, "Saved!");
+                        info.showAndWait();
+                    });
+        }
+    }
 
     public Structure getStructure() {
         return structure;
