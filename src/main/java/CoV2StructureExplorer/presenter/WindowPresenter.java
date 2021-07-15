@@ -2,14 +2,14 @@ package CoV2StructureExplorer.presenter;
 
 import CoV2StructureExplorer.model.PDBFile;
 import CoV2StructureExplorer.model.PDBWeb;
+import CoV2StructureExplorer.redoundo.PropertyCommand;
+import CoV2StructureExplorer.redoundo.UndoRedoManager;
 import CoV2StructureExplorer.view.WindowController;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -38,15 +38,14 @@ public class WindowPresenter {
         }
     };
     private final Stage stage;
-    private ViewPresenter view;
+    private final UndoRedoManager undoManager;
 
     public WindowPresenter(Stage stage, WindowController controller) {
         this.controller = controller;
         this.stage = stage;
+        this.undoManager = new UndoRedoManager();
 
-        // setup ChoiceBox
-        controller.getColorChoice().getItems().addAll("Atoms", "Structure", "Chains", "Residue");
-        controller.getColorChoice().setValue("Atoms");
+        setupUndoRedoInteraction(controller);
 
         // show/hide modelSelection in visualisation tab, SimpleIntegerProperty updated via parse button
         var sizeModelChoiceSize = new SimpleIntegerProperty(controller.getModelChoice().getItems().size(), "sizeModelChoiceSize");
@@ -89,10 +88,9 @@ public class WindowPresenter {
             sizeModelChoiceSize.setValue(controller.getModelChoice().getItems().size());
             sizeChainChoiceSize.setValue(controller.getFocusChoice().getItems().size());
 
-
             textService.restart();
 
-            this.view = new ViewPresenter(controller, model);
+            new ViewPresenter(controller, model);
 
             controller.getAbstractContent().setText(fillReportTab());
             ChartPresenter.setupChartTab(this.model, controller);
@@ -100,7 +98,6 @@ public class WindowPresenter {
 
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
         controller.getParseButton().disableProperty().bind(
-                // TODO: check if parse button is disabled correctly when service is running
                 textService.runningProperty().or(
                         controller.getEntryField().textProperty().length().isEqualTo(4).or(
                                 controller.getPdbCodeList().getSelectionModel().selectedItemProperty().isNotNull()))
@@ -117,10 +114,8 @@ public class WindowPresenter {
             } else {
                 pdbCode = controller.getPdbCodeList().getSelectionModel().getSelectedItem();
             }
-//            this.model = new PDBFile(pdbCode);
             modelService.restart();
         });
-
 
         // Simple Button Listeners
         controller.getClearSearchButton().disableProperty().bind(controller.getEntryField().textProperty().isEmpty());
@@ -139,38 +134,43 @@ public class WindowPresenter {
             if (n != null && o != null && !n.equals(o)) {
                 controller.getFigurePane().getChildren().clear();
                 System.out.println("model choice listener triggered");
-                // TODO: set up in a way that does not reset camera
-                view = new ViewPresenter(controller, model);
+                new ViewPresenter(controller, model);
             }
         });
-
         this.menuButtons();
     }
 
-    // TODO: move to model
-    private static void savePDB(Stage stage, WindowController controller, PDBFile model) {
-        if (model == null) {
-            var info = new Alert(Alert.AlertType.ERROR, "No pdb entry loaded!");
-            info.showAndWait();
-        } else {
-            DirectoryChooser chooser = new DirectoryChooser();
-            chooser.setTitle("Please choose saving location");
-            File selectedDirectory = chooser.showDialog(stage);
-            var path = selectedDirectory.toPath(); //selectedDirectory.getAbsolutePath();
+    private void setupUndoRedoInteraction(WindowController controller) {
+        controller.getUndoMenu().setOnAction (e -> undoManager . undo ( ) ) ;
+        controller.getUndoMenu().textProperty().bind ( undoManager . undoLabelProperty ( ) ) ;
+        controller.getUndoMenu().disableProperty ( ) . bind ( undoManager . canUndoProperty ( ) . not ( ) ) ;
+        controller.getRedoMenu().setOnAction (e->undoManager . redo ( ) ) ;
+        controller.getRedoMenu().textProperty( ) . bind ( undoManager . redoLabelProperty ( ) ) ;
+        controller.getRedoMenu().disableProperty( ) . bind ( undoManager . canRedoProperty ( ) . not ( ) ) ;
 
-            // only save if user confirms chosen path
-            var alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("");
-            alert.setHeaderText("Do you want to save the file?");
-            alert.setContentText("directory: " + path);
-            alert.showAndWait()
-                    .filter(response -> response == ButtonType.OK)
-                    .ifPresent(response -> {
-                        model.savePDBFile(path);
-                        var info = new Alert(Alert.AlertType.INFORMATION, "Saved!");
-                        info.showAndWait();
-                    });
-        }
+        controller.getRadiusScale().valueProperty().addListener((v, o, n) ->
+                undoManager.add(new PropertyCommand<>("Atom Radius", (DoubleProperty) v, o, n)));
+
+        controller.getDiameterScale().valueProperty().addListener((v, o, n) ->
+                undoManager.add(new PropertyCommand<>("Bond Thickness", (DoubleProperty) v, o, n)));
+
+        controller.getAtomsChecked().selectedProperty().addListener((v, o, n) ->
+                undoManager.add(new PropertyCommand<>("show Atoms", (BooleanProperty) v, o, n)));
+
+        controller.getRibbonChecked().selectedProperty().addListener((v, o, n) ->
+                undoManager.add(new PropertyCommand<>("show Bonds", (BooleanProperty) v, o, n)));
+
+        controller.getBondsChecked().selectedProperty().addListener((v, o, n) ->
+                undoManager.add(new PropertyCommand<>("show Ribbon", (BooleanProperty) v, o, n)));
+
+        controller.getColorChoice().valueProperty().addListener((v, o, n) ->
+                undoManager.add(new PropertyCommand<>("changed color", (ObjectProperty<String>) v, o, n)));
+
+        controller.getFocusChoice().valueProperty().addListener((v, o, n) ->
+                undoManager.add(new PropertyCommand<>("changed highlight", (ObjectProperty<String>) v, o, n)));
+
+        controller.getModelChoice().valueProperty().addListener((v, o, n) ->
+                undoManager.add(new PropertyCommand<>("changed model", (ObjectProperty<Integer>) v, o, n)));
     }
 
     private static void clearAll(WindowController controller) {
@@ -194,7 +194,7 @@ public class WindowPresenter {
         });
         controller.getOpenMenu().setOnAction(e -> openPDB(stage, this.controller));
         controller.getClearMenu().setOnAction(e -> clearAll(this.controller));
-        controller.getSaveMenu().setOnAction(e -> savePDB(stage, controller, model));
+        controller.getSaveMenu().setOnAction(e -> PDBFile.savePDB(stage, model));
         controller.getExitMenu().setOnAction(e -> System.exit(0));
     }
 
@@ -222,7 +222,7 @@ public class WindowPresenter {
             clearAll(controller);
             this.model = new PDBFile(Path.of(selectedFile.getPath()));
             this.textService.restart();
-            this.view = new ViewPresenter(controller, this.model);
+            new ViewPresenter(controller, this.model);
         }
     }
 
