@@ -28,7 +28,6 @@ public class WindowPresenter {
 
     private final WindowController controller;
     private final Stage stage;
-    private ViewPresenter view;
     private PDBFile model;
     private String pdbCode;
     private final UndoRedoManager undoManager;
@@ -66,7 +65,7 @@ public class WindowPresenter {
             if (n != null && o != null && !n.equals(o)) {
                 controller.getFigurePane().getChildren().clear();
                 System.out.println("model choice listener triggered");
-                this.view = new ViewPresenter(controller, model);
+                new ViewPresenter(controller, model);
             }
         });
         this.menuButtons();
@@ -87,7 +86,7 @@ public class WindowPresenter {
             populateModelChoice(controller, sizeModelChoiceSize);
 
             textService.restart();
-            this.view = new ViewPresenter(controller, model);
+            new ViewPresenter(controller, model);
 
             controller.getAbstractContent().setText(fillReportTab());
             ChartPresenter.setupChartTab(this.model, controller);
@@ -278,7 +277,7 @@ public class WindowPresenter {
             clearAll(controller);
             this.model = new PDBFile(Path.of(selectedFile.getPath()));
             this.textService.restart();
-            this.view = new ViewPresenter(controller, this.model);
+            new ViewPresenter(controller, this.model);
         }
     }
 

@@ -296,8 +296,8 @@ public class ViewPresenter {
             }
         });
 
-        for (var item : chainGroups.entrySet()) {
-            item.getValue().getTransforms().add(new Translate(-centerX, -centerY, -centerZ));
+        for (var item : chainGroups.values()) {
+            item.getTransforms().add(new Translate(-centerX, -centerY, -centerZ));
         }
         return camera;
     }
@@ -385,10 +385,10 @@ public class ViewPresenter {
 
             cyclingProperty.setValue(true);
 
-            for (var chain : chainGroups.entrySet()) {
+            for (var chain : chainGroups.values()) {
 
                 var transition = new ScaleTransition(Duration.millis(2000));
-                chain.getValue().getChildren().forEach(transition::setNode);
+                chain.getChildren().forEach(transition::setNode);
                 transition.setByX(1.f);
                 transition.setByY(1.f);
                 transition.setByZ(1.f);
