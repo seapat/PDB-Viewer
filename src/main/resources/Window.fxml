@@ -8,12 +8,14 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -22,26 +24,52 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CoV2StructureExplorer.view.WindowController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CoV2StructureExplorer.view.WindowController">
     <MenuBar>
         <Menu mnemonicParsing="false" text="File">
-            <MenuItem fx:id="openMenu" mnemonicParsing="false" text="Open" />
-            <MenuItem fx:id="saveMenu" mnemonicParsing="false" text="Save" />
-            <MenuItem fx:id="clearMenu" mnemonicParsing="false" text="Clear All" />
+            <MenuItem fx:id="openMenu" mnemonicParsing="false" text="Open">
+            <accelerator>
+               <KeyCodeCombination alt="DOWN" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator></MenuItem>
+            <MenuItem fx:id="saveMenu" mnemonicParsing="false" text="Save">
+            <accelerator>
+               <KeyCodeCombination alt="DOWN" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator></MenuItem>
+            <MenuItem fx:id="clearMenu" mnemonicParsing="false" text="Clear All">
+            <accelerator>
+               <KeyCodeCombination alt="DOWN" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator></MenuItem>
             <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem fx:id="exitMenu" mnemonicParsing="false" text="Exit Application" />
         </Menu>
         <Menu mnemonicParsing="false" text="Edit">
             <MenuItem fx:id="undoMenu" mnemonicParsing="false" text="Undo">
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
+            </MenuItem>
+            <MenuItem fx:id="redoMenu" mnemonicParsing="false" text="Redo">
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="Y" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
+            </MenuItem>
+       <MenuItem fx:id="clearSelectionMenu" mnemonicParsing="false" text="Clear Selection">
             <accelerator>
-               <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-            </accelerator></MenuItem>
-         <MenuItem fx:id="redoMenu" mnemonicParsing="false" text="Redo">
+               <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+         </MenuItem>
+         <MenuItem fx:id="allSelectionMenu" mnemonicParsing="false" text="Select All">
             <accelerator>
-               <KeyCodeCombination alt="UP" code="Y" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+               <KeyCodeCombination alt="UP" code="A" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
             </accelerator>
          </MenuItem>
         </Menu>
+      <Menu mnemonicParsing="false" text="Window">
+        <items>
+            <MenuItem fx:id="copyImageMenuItem" mnemonicParsing="false" text="Save to Clipboard" />
+            <MenuItem fx:id="darkThemeMenu" mnemonicParsing="false" text="Dark Theme" />
+        </items>
+      </Menu>
         <Menu mnemonicParsing="false" text="Help">
             <MenuItem fx:id="aboutMenu" mnemonicParsing="false" text="About" />
         </Menu>
@@ -63,9 +91,20 @@
         <Tab closable="false" text="Report">
             <TextArea fx:id="abstractContent" editable="false" wrapText="true" />
         </Tab>
-        <Tab fx:id="chartTab" closable="false" text="Chart">
-            <!--            <StackedBarChart fx:id="staticChart" />-->
-        </Tab>
+        <Tab closable="false" text="Chart">
+         <content>
+            <VBox fx:id="chartTab">
+               <children>
+                  <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="NEVER">
+                     <items>
+                        <ToggleButton fx:id="chartTotalButton" mnemonicParsing="false" text="Total" />
+                        <Separator orientation="VERTICAL" />
+                        <Button fx:id="flipChartButton" mnemonicParsing="false" text="Flip Data" />
+                     </items>
+                  </ToolBar>
+               </children>
+            </VBox>
+         </content></Tab>
         <Tab closable="false" text="Visualisation">
             <content>
                 <VBox>
@@ -75,11 +114,14 @@
                                 <CheckBox fx:id="atomsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Atoms" />
                                 <Slider fx:id="radiusScale" max="1.5" min="0.5" prefWidth="100.0" value="1.0" />
                                 <CheckBox fx:id="bondsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Bonds" />
-                                <Slider fx:id="diameterScale" blockIncrement="50" max="15.0" min="5.0" prefWidth="100.0" value="10.0" />
+                                <Slider fx:id="diameterScale" blockIncrement="0.25" max="0.15" min="0.05" prefWidth="100.0" value="0.1" />
                                 <CheckBox fx:id="ribbonChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Ribbon" />
                                 <Pane HBox.hgrow="ALWAYS" />
-                        <Label fx:id="focusLabel" nodeOrientation="LEFT_TO_RIGHT" text="Focus" />
-                        <ChoiceBox fx:id="focusChoice" nodeOrientation="LEFT_TO_RIGHT" />
+                                <ToggleButton fx:id="rotateProteinButton" mnemonicParsing="false" text="Rotate" />
+                                <Button fx:id="scaleChainsButton" mnemonicParsing="false" text="Cycle" />
+                                <ToggleButton fx:id="explodeButton" mnemonicParsing="false" prefWidth="65.0" text="Explode" />
+                                <Label fx:id="focusLabel" nodeOrientation="LEFT_TO_RIGHT" text="Chain" />
+                                <ChoiceBox fx:id="focusChoice" nodeOrientation="LEFT_TO_RIGHT" />
                                 <Label nodeOrientation="LEFT_TO_RIGHT" text="Color" />
                                 <ChoiceBox fx:id="colorChoice" nodeOrientation="LEFT_TO_RIGHT" />
                                 <Label fx:id="modelLabel" nodeOrientation="LEFT_TO_RIGHT" text="Model" />
@@ -93,7 +135,7 @@
                                 <AnchorPane depthTest="DISABLE" mouseTransparent="true" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: TRANSPARENT;">
                                     <children>
                                         <Pane fx:id="legendPane" layoutX="10.0" layoutY="10.0" mouseTransparent="true" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
-<!--                                            <style>-fx-background-color: WHITE; -fx-border-color: BLACK;</style>-->
+                                            <!--                                            <style>-fx-background-color: WHITE; -fx-border-color: BLACK;</style>-->
                                         </Pane>
                                     </children>
                                 </AnchorPane>
@@ -102,7 +144,7 @@
                         </StackPane>
                         <ToolBar prefHeight="40.0" prefWidth="200.0">
                             <items>
-                        <Label text="Selected Residues: " />
+                                <Label text="Selected Residues: " />
                                 <Label fx:id="infoLabel" />
                             </items>
                         </ToolBar>

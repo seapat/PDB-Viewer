@@ -1,111 +1,122 @@
 package CoV2StructureExplorer.view;
 
 import javafx.fxml.FXML;
-import javafx.scene.chart.StackedBarChart;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 
 public class WindowController {
 
-    public Tab getChartTab() {
+    @FXML
+    private ToggleButton chartTotalButton;
+    @FXML
+    private Button flipChartButton;
+    @FXML
+    private MenuItem undoMenu;
+    @FXML
+    private MenuItem redoMenu;
+    @FXML
+    private Pane legendPane;
+    @FXML
+    private VBox chartTab;
+    @FXML
+    private Pane selectionPane;
+    @FXML
+    private ToggleButton rotateProteinButton;
+    @FXML
+    private TextArea abstractContent;
+    @FXML
+    private CheckBox ribbonChecked;
+    @FXML
+    private CheckBox atomsChecked;
+    @FXML
+    private Button scaleChainsButton;
+    @FXML
+    private CheckBox bondsChecked;
+    @FXML
+    private MenuItem allSelectionMenu;
+    @FXML
+    private MenuItem copyImageMenuItem;
+    @FXML
+    private MenuItem clearSelectionMenu;
+    @FXML
+    private MenuItem darkThemeMenu;
+    @FXML
+    private ToggleButton explodeButton;
+    @FXML
+    private ChoiceBox<String> colorChoice;
+    @FXML
+    private Label modelLabel;
+    @FXML
+    private ChoiceBox<Integer> modelChoice;
+    @FXML
+    private Button clearSearchButton;
+    @FXML
+    private Slider radiusScale;
+    @FXML
+    private Slider diameterScale;
+    @FXML
+    private Label infoLabel;
+    @FXML
+    private Pane figurePane;
+    @FXML
+    private ListView<String> pdbCodeList;
+    @FXML
+    private MenuItem openMenu;
+    @FXML
+    private MenuItem saveMenu;
+    @FXML
+    private MenuItem clearMenu;
+    @FXML
+    private MenuItem exitMenu;
+    @FXML
+    private MenuItem aboutMenu;
+    @FXML
+    private ListView<String> pdbText;
+    @FXML
+    private TextField entryField;
+    @FXML
+    private Button parseButton;
+    @FXML
+    private Label focusLabel;
+    @FXML
+    private ChoiceBox<String> focusChoice;
+
+    public VBox getChartTab() {
         return chartTab;
     }
 
-    public StackedBarChart<String, Number> getStaticChart() {
-        return staticChart;
+    public ToggleButton getChartTotalButton() {
+        return chartTotalButton;
     }
 
-    @FXML
-    private MenuItem undoMenu;
+    public Button getFlipChartButton() {
+        return flipChartButton;
+    }
 
-    @FXML
-    private MenuItem redoMenu;
+    public ToggleButton getExplodeButton() {
+        return explodeButton;
+    }
 
-    @FXML
-    private Pane legendPane;
+    public MenuItem getDarkThemeMenu() {
+        return darkThemeMenu;
+    }
 
-    @FXML
-    private StackedBarChart<String, Number> staticChart;
+    public MenuItem getClearSelectionMenu() {
+        return clearSelectionMenu;
+    }
 
-    @FXML
-    private Tab chartTab;
+    public MenuItem getCopyImageMenuItem() {
+        return copyImageMenuItem;
+    }
 
-    @FXML
-    private Pane selectionPane;
-
-    @FXML
-    private TextArea abstractContent;
-
-    @FXML
-    private CheckBox ribbonChecked;
-
-    @FXML
-    private CheckBox atomsChecked;
-
-    @FXML
-    private CheckBox bondsChecked;
-
-    @FXML
-    private ChoiceBox<String> colorChoice;
-
-    @FXML
-    private Label modelLabel;
-
-    @FXML
-    private ChoiceBox<Integer> modelChoice;
-
-    @FXML
-    private Button clearSearchButton;
-
-    @FXML
-    private Slider radiusScale;
-
-    @FXML
-    private Slider diameterScale;
-
-    @FXML
-    private Label infoLabel;
-
-    @FXML
-    private Pane figurePane;
-
-    @FXML
-    private ListView<String> pdbCodeList;
-
-    @FXML
-    private MenuItem openMenu;
-
-    @FXML
-    private MenuItem saveMenu;
-
-    @FXML
-    private MenuItem clearMenu;
-
-    @FXML
-    private MenuItem exitMenu;
-
-    @FXML
-    private MenuItem aboutMenu;
-
-    @FXML
-    private ListView<String> pdbText;
-
-    @FXML
-    private TextField entryField;
-
-    @FXML
-    private Button parseButton;
-
-    @FXML
-    private Label focusLabel;
+    public MenuItem getAllSelectionMenu() {
+        return allSelectionMenu;
+    }
 
     public ChoiceBox<String> getFocusChoice() {
         return focusChoice;
     }
-
-    @FXML
-    private ChoiceBox<String> focusChoice;
 
     public ListView<String> getPdbCodeList() {
         return pdbCodeList;
@@ -209,5 +220,13 @@ public class WindowController {
 
     public MenuItem getRedoMenu() {
         return redoMenu;
+    }
+
+    public Button getScaleChainsButton() {
+        return scaleChainsButton;
+    }
+
+    public ToggleButton getRotateProteinButton() {
+        return rotateProteinButton;
     }
 }
