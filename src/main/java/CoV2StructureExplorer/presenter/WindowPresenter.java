@@ -10,6 +10,10 @@ import javafx.collections.FXCollections;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -22,23 +26,24 @@ import java.util.ArrayList;
 
 public class WindowPresenter {
 
-    private String pdbCode;
+    private final WindowController controller;
+    private final Stage stage;
+    private ViewPresenter view;
     private PDBFile model;
+    private String pdbCode;
+    private final UndoRedoManager undoManager;
     private final Service<ArrayList<String>> textService = new Service<>() {
         @Override
         protected Task<ArrayList<String>> createTask() {
             return new pdbTextTask(model);
         }
     };
-    private final WindowController controller;
     private final Service<PDBFile> modelService = new Service<>() {
         @Override
         protected Task<PDBFile> createTask() {
             return new changeModelTask(pdbCode, controller);
         }
     };
-    private final Stage stage;
-    private final UndoRedoManager undoManager;
 
     public WindowPresenter(Stage stage, WindowController controller) {
         this.controller = controller;
@@ -49,19 +54,25 @@ public class WindowPresenter {
 
         // show/hide modelSelection in visualisation tab, SimpleIntegerProperty updated via parse button
         var sizeModelChoiceSize = new SimpleIntegerProperty(controller.getModelChoice().getItems().size(), "sizeModelChoiceSize");
-        controller.getModelChoice().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
-        controller.getModelLabel().visibleProperty().bind(sizeModelChoiceSize.greaterThan(1));
-        controller.getModelChoice().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
-        controller.getModelLabel().managedProperty().bind(sizeModelChoiceSize.greaterThan(1));
+        controller.getModelChoice().disableProperty().bind(sizeModelChoiceSize.greaterThan(1).not());
         controller.getModelChoice().setValue(1);
 
-        var sizeChainChoiceSize = new SimpleIntegerProperty(controller.getFocusChoice().getItems().size(), "sizeChainChoiceSize");
-        controller.getFocusChoice().visibleProperty().bind(sizeChainChoiceSize.greaterThan(2));
-        controller.getFocusLabel().visibleProperty().bind(sizeChainChoiceSize.greaterThan(2));
-        controller.getFocusChoice().managedProperty().bind(sizeChainChoiceSize.greaterThan(2));
-        controller.getFocusLabel().managedProperty().bind(sizeChainChoiceSize.greaterThan(2));
-        controller.getFocusChoice().setValue("All");
+        setupServices(controller, sizeModelChoiceSize);
 
+        setupButtons(controller);
+        setupPDBSearch(controller);
+
+        controller.getModelChoice().valueProperty().addListener((v, o, n) -> {
+            if (n != null && o != null && !n.equals(o)) {
+                controller.getFigurePane().getChildren().clear();
+                System.out.println("model choice listener triggered");
+                this.view = new ViewPresenter(controller, model);
+            }
+        });
+        this.menuButtons();
+    }
+
+    private void setupServices(WindowController controller, SimpleIntegerProperty sizeModelChoiceSize) {
         // service to parse pdb file in background
         textService.setOnScheduled(v -> clearAll(controller));
         textService.setOnSucceeded(v -> {
@@ -69,33 +80,33 @@ public class WindowPresenter {
             controller.getPdbText().scrollTo(0);
         });
 
-//        modelService.setOnSucceeded(v -> clearAll(controller));
         modelService.setOnSucceeded(v -> {
             this.model = modelService.getValue();
 
-            // populate focus choice
-            controller.getFocusChoice().getItems().removeAll();
-            controller.getFocusChoice().getItems().add("All");
-            model.getProtein().get(0).forEach( chain ->  controller.getFocusChoice().getItems().add(String.valueOf(chain.getChainID())));
-            controller.getFocusChoice().setValue("All");
-
-            // populate model choice
-            controller.getModelChoice().getItems().removeAll();
-            for (var item : this.model.getProtein()) {
-                controller.getModelChoice().getItems().add(item.getId());
-            }
-            controller.getModelChoice().setValue(controller.getModelChoice().getItems().get(0));
-            sizeModelChoiceSize.setValue(controller.getModelChoice().getItems().size());
-            sizeChainChoiceSize.setValue(controller.getFocusChoice().getItems().size());
+            populateFocusChoice(controller);
+            populateModelChoice(controller, sizeModelChoiceSize);
 
             textService.restart();
-
-            new ViewPresenter(controller, model);
+            this.view = new ViewPresenter(controller, model);
 
             controller.getAbstractContent().setText(fillReportTab());
             ChartPresenter.setupChartTab(this.model, controller);
         });
+    }
 
+    private void setupPDBSearch(WindowController controller) {
+        // get default value for List of pdb codes
+        controller.getPdbCodeList().setItems(
+                FXCollections.observableArrayList(
+                        PDBWeb.getPDBEntries(controller.getEntryField().getText())));
+        controller.getEntryField().textProperty().addListener(e ->
+                controller.getPdbCodeList().setItems(
+                        FXCollections.observableArrayList(
+                                PDBWeb.getPDBEntries(controller.getEntryField().getText())))
+        );
+    }
+
+    private void setupButtons(WindowController controller) {
         // Only let user parse if pdb code is selected and listview in focus (no unnecessary re-parsing of already parsed code)
         controller.getParseButton().disableProperty().bind(
                 textService.runningProperty().or(
@@ -120,33 +131,66 @@ public class WindowPresenter {
         // Simple Button Listeners
         controller.getClearSearchButton().disableProperty().bind(controller.getEntryField().textProperty().isEmpty());
         controller.getClearSearchButton().setOnAction(e -> controller.getEntryField().clear());
+    }
 
-        // get default value for List of pdb codes
-        controller.getPdbCodeList().setItems(
-                FXCollections.observableArrayList(
-                        PDBWeb.getPDBEntries(controller.getEntryField().getText())));
-        controller.getEntryField().textProperty().addListener(e ->
-                controller.getPdbCodeList().setItems(
-                        FXCollections.observableArrayList(
-                                PDBWeb.getPDBEntries(controller.getEntryField().getText())))
-        );
-        controller.getModelChoice().valueProperty().addListener((v, o, n) -> {
-            if (n != null && o != null && !n.equals(o)) {
-                controller.getFigurePane().getChildren().clear();
-                System.out.println("model choice listener triggered");
-                new ViewPresenter(controller, model);
-            }
-        });
-        this.menuButtons();
+    private void populateFocusChoice(WindowController controller) {
+        // populate focus choice
+        controller.getFocusChoice().getItems().removeAll();
+        controller.getFocusChoice().getItems().add("All");
+        model.getProtein().get(0).forEach(chain -> controller.getFocusChoice().getItems().add(String.valueOf(chain.getChainID())));
+        controller.getFocusChoice().setValue("All");
+    }
+
+    private void populateModelChoice(WindowController controller, SimpleIntegerProperty sizeModelChoiceSize) {
+        // populate model choice
+        controller.getModelChoice().getItems().removeAll();
+        for (var item : this.model.getProtein()) {
+            controller.getModelChoice().getItems().add(item.getId());
+        }
+        controller.getModelChoice().setValue(controller.getModelChoice().getItems().get(0));
+        sizeModelChoiceSize.setValue(controller.getModelChoice().getItems().size());
+    }
+
+    private static void clearAll(WindowController controller) {
+        controller.getFigurePane().getChildren().clear();
+        controller.getPdbText().getItems().clear();
+
+        if (controller.getChartTab().getChildren().size() > 1)
+            controller.getChartTab().getChildren().remove(1);
+    }
+
+    public static void savePDB(Stage stage, PDBFile model) {
+        if (model == null) {
+            var info = new Alert(Alert.AlertType.ERROR, "No pdb entry loaded!");
+            info.showAndWait();
+        } else {
+            DirectoryChooser chooser = new DirectoryChooser();
+            chooser.setTitle("Please choose saving location");
+            File selectedDirectory = chooser.showDialog(stage);
+            var path = selectedDirectory.toPath();
+
+            // only save if user confirms chosen path
+            var alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("");
+            alert.setHeaderText("Do you want to save the file?");
+            alert.setContentText("directory: " + path);
+            alert.showAndWait()
+                    .filter(response -> response == ButtonType.OK)
+                    .ifPresent(response -> {
+                        model.savePDBFile(path);
+                        var info = new Alert(Alert.AlertType.INFORMATION, "Saved!");
+                        info.showAndWait();
+                    });
+        }
     }
 
     private void setupUndoRedoInteraction(WindowController controller) {
-        controller.getUndoMenu().setOnAction (e -> undoManager . undo ( ) ) ;
-        controller.getUndoMenu().textProperty().bind ( undoManager . undoLabelProperty ( ) ) ;
-        controller.getUndoMenu().disableProperty ( ) . bind ( undoManager . canUndoProperty ( ) . not ( ) ) ;
-        controller.getRedoMenu().setOnAction (e->undoManager . redo ( ) ) ;
-        controller.getRedoMenu().textProperty( ) . bind ( undoManager . redoLabelProperty ( ) ) ;
-        controller.getRedoMenu().disableProperty( ) . bind ( undoManager . canRedoProperty ( ) . not ( ) ) ;
+        controller.getUndoMenu().setOnAction(e -> undoManager.undo());
+        controller.getUndoMenu().textProperty().bind(undoManager.undoLabelProperty());
+        controller.getUndoMenu().disableProperty().bind(undoManager.canUndoProperty().not());
+        controller.getRedoMenu().setOnAction(e -> undoManager.redo());
+        controller.getRedoMenu().textProperty().bind(undoManager.redoLabelProperty());
+        controller.getRedoMenu().disableProperty().bind(undoManager.canRedoProperty().not());
 
         controller.getRadiusScale().valueProperty().addListener((v, o, n) ->
                 undoManager.add(new PropertyCommand<>("Atom Radius", (DoubleProperty) v, o, n)));
@@ -173,14 +217,26 @@ public class WindowPresenter {
                 undoManager.add(new PropertyCommand<>("changed model", (ObjectProperty<Integer>) v, o, n)));
     }
 
-    private static void clearAll(WindowController controller) {
-        controller.getFigurePane().getChildren().clear();
-        controller.getChartTab().setContent(null);
-        controller.getPdbText().getItems().clear();
-    }
-
     private void menuButtons() {
-        // Menu item Listeners
+
+        controller.getCopyImageMenuItem().setOnAction(e -> {
+
+            var content = new ClipboardContent();
+            content.putImage(
+                    controller.getFigurePane().snapshot(null, null));
+            Clipboard.getSystemClipboard().setContent(content);
+        });
+
+        var darkThemeToggledProperty = new SimpleBooleanProperty(controller.getDarkThemeMenu(), "Dark Theme Toggle", false);
+        controller.getDarkThemeMenu().setOnAction(e -> {
+            darkThemeToggledProperty.setValue(!darkThemeToggledProperty.getValue());
+            if (darkThemeToggledProperty.getValue()) {
+                stage.getScene().getStylesheets().add("/mondena_dark.css");
+            } else {
+                stage.getScene().getStylesheets().remove("/mondena_dark.css");
+            }
+        });
+
         controller.getAboutMenu().setOnAction(e -> {
             var alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("About this thing!");
@@ -194,7 +250,7 @@ public class WindowPresenter {
         });
         controller.getOpenMenu().setOnAction(e -> openPDB(stage, this.controller));
         controller.getClearMenu().setOnAction(e -> clearAll(this.controller));
-        controller.getSaveMenu().setOnAction(e -> PDBFile.savePDB(stage, model));
+        controller.getSaveMenu().setOnAction(e -> savePDB(stage, model));
         controller.getExitMenu().setOnAction(e -> System.exit(0));
     }
 
@@ -222,7 +278,7 @@ public class WindowPresenter {
             clearAll(controller);
             this.model = new PDBFile(Path.of(selectedFile.getPath()));
             this.textService.restart();
-            new ViewPresenter(controller, this.model);
+            this.view = new ViewPresenter(controller, this.model);
         }
     }
 
@@ -268,35 +324,11 @@ public class WindowPresenter {
             this.controller = controller;
         }
 
-        changeModelTask(Path pdbID, WindowController controller) {
-            this.model = new PDBFile(pdbID);
-            this.controller = controller;
-        }
-
         @Override
         public PDBFile call() {
 
             return this.model;
         }
     }
-
-    // TODO: How to set this up.
-    private static class changeViewTask extends Task<ViewPresenter> {
-
-        ViewPresenter view;
-        WindowController controller;
-
-        changeViewTask(PDBFile model, WindowController controller) {
-
-            this.view = new ViewPresenter(controller, model);
-            this.controller = controller;
-        }
-
-        @Override
-        public ViewPresenter call() {
-            return this.view;
-        }
-    }
-
 
 }
