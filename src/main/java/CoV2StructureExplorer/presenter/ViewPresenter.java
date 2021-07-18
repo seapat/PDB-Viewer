@@ -75,10 +75,10 @@ public class ViewPresenter {
         setupFocusChoice(controller);
 
         controller.getColorChoice().valueProperty().addListener((v , o , n) -> {
-            if ((controller.getColorChoice().getValue() == null))
+            if (!n.equals(o)) {
                 controller.getFocusChoice().setValue("All");
-            if (!n.equals(o))
-            balls.changeColor(controller);
+                balls.changeColor(controller);
+            }
         });
 
         controller.getInfoLabel().textProperty().bind(this.getSelectedResiduesProp());
@@ -182,7 +182,7 @@ public class ViewPresenter {
             balls.changeColor(controller);
             meshes.forEach(mesh -> mesh.setMaterial(new PhongMaterial(Color.PURPLE)));
             sticks.forEach(stick -> stick.setMaterial(new PhongMaterial(Color.GREY)));
-//            selectionModel.clearSelection();
+            controller.getFocusChoice().setValue("All");
         });
 
         // concat all nodes to reduce loop nesting
