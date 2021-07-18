@@ -121,7 +121,7 @@ public class Balls extends ArrayList<Sphere> {
                     // SELECTION
                     sphere.setOnMouseClicked(e -> {
                         if (!e.isShiftDown()) {
-                                selectedResidues.clearSelection();
+                            selectedResidues.clearSelection();
                         }
 
                         selectedResidues.select(residue);

@@ -76,9 +76,11 @@ public class ViewPresenter {
 
         controller.getColorChoice().valueProperty().addListener((v , o , n) -> {
             if (!n.equals(o)) {
-                controller.getFocusChoice().setValue("All");
+
                 balls.changeColor(controller);
             }
+            controller.getFocusChoice().setValue("All");
+            selectedResidues.clearSelection();
         });
 
         controller.getInfoLabel().textProperty().bind(this.getSelectedResiduesProp());
