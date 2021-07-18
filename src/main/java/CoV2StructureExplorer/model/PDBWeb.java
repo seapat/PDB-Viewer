@@ -17,10 +17,12 @@ public class PDBWeb {
     Class that handles communication with rcsb.org, preferably everything is static/only exists once
      */
 
-    // No instances allowed / needed
-    private PDBWeb(){}
-
     private static final ArrayList<String> pdbEntries = fillEntryList();
+
+    // No instances allowed / needed
+    private PDBWeb() {
+    }
+
     private static ArrayList<String> fillEntryList() {
         try {
             var url = new URL("https://data.rcsb.org/rest/v1/holdings/current/entry_ids");
@@ -35,25 +37,23 @@ public class PDBWeb {
             e.printStackTrace();
             return new ArrayList<>();
         }
-
     }
 
     // fetch pdb from url
-    public static InputStream getFromURL(URL url){
+    public static InputStream getFromURL(URL url) {
 
         try {
             var connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
             return connection.getInputStream();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             var errorString = """
                     Couldn't retrieve the PDB code.
                     There is probably no regular .pdb file available.
                     Or the code does not exist at all.
-                   
+                                       
                     Error Message:
                     """ + e;
             System.err.println("\n" + errorString);
@@ -73,7 +73,7 @@ public class PDBWeb {
                             "6ZP5",//"6ZP4",
                             "6ZP7", "6ZOX", "6ZOW", "6ZOZ", "6ZOY", "6ZOK",//"6ZON",
                             "6ZP1", "6ZP0", "6ZP2", "5R84", "5R83", "5R7Y", "5R80", "5R82", "5R81",//"5R8T",
-                            "5R7Z", "5REA", "5REC", "MULTIPLE MODELS:", "5jxv"));
+                            "5R7Z", "5REA", "5REC", "MULTIPLE MODELS:", "5jxv", "2nnt"));
         }
         try {
             var hits = pdbEntries.stream().filter(s -> s.startsWith(query.toUpperCase())).toList();
@@ -105,17 +105,14 @@ public class PDBWeb {
         try {
             var code = pdbID.toLowerCase();
             var url = new URL("https://data.rcsb.org/rest/v1/core/pubmed/" + code); //"https://data.rcsb.org/rest/v1/core/polymer_entity/"+ code + "/1"
-
             var content = Json.createReader(getFromURL(url)).read();
-//            var content = reader.read();
             var text = content.getValue("/rcsb_pubmed_abstract_text").toString();
             var address = content.getValue("/rcsb_pubmed_affiliation_info").toString()
                     .replaceAll("([a-zA-Z0-9+._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z0-9_-]+)", "")
-                    .replace("[", "").replace("]", "")
-                    ;
+                    .replace("[", "").replace("]", "");
             var doi = content.getValue("/rcsb_pubmed_doi").toString();
 
-            return ("Abstract: \n" + text + "\n\nAddress: \t" + address  + "\nDOI: \t" + doi).replace("\"", "");
+            return ("Abstract: \n" + text + "\n\nAddress: \t" + address + "\nDOI: \t" + doi).replace("\"", "");
 
         } catch (IOException e) {
             e.printStackTrace();

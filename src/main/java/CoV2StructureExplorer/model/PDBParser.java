@@ -1,6 +1,8 @@
 package CoV2StructureExplorer.model;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,8 +11,6 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
 public class PDBParser {
-
-
     /*
     Reads the content of .pdb files.
     A single reader object is created for the instance of the class, lines are progressed from various methods.
@@ -28,31 +28,24 @@ public class PDBParser {
     static final double BOND_TOLERANCE = 1.1;
 
     private final Structure structure;
-    private BufferedReader reader;
-    private String currLine;
     private final ArrayList<Helix> helices = new ArrayList<>();
     private final ArrayList<Sheet> sheets = new ArrayList<>();
-
-    public HashMap<String, Map<String, Integer>> getAaCompositionPerChain() {
-        return aaCompositionPerChain;
-    }
-
     private final HashMap<String, Map<String, Integer>> aaCompositionPerChain;
-
+    private BufferedReader reader;
+    private String currLine;
 
     PDBParser(String pdbID, String pdbFile) {
 
         this.aaCompositionPerChain = new HashMap<>();
-//        this.aaCompositionPerChain.put("Total", new HashMap<>());
+        this.aaCompositionPerChain.put("Total", new HashMap<>());
         this.structure = new Structure(pdbID);
         int modelID = 0;
 
         try {
             reader = new BufferedReader(new StringReader(pdbFile));
-
             progressLine();
 
-            while ( currLine != null && currLine.trim().length() > 0 ) {
+            while (currLine != null && currLine.trim().length() > 0) {
 
                 if (currLine.startsWith("HELIX")) {
                     this.helices.add(new Helix(
@@ -71,9 +64,10 @@ public class PDBParser {
                             currLine.charAt(21)
                     ));
                 }
-
                 if (currLine.startsWith("ATOM")) {
-                    structure.add(parseModel(structure, modelID++));
+                    var model = parseModel(structure, modelID++);
+                    model.setCoordExtrema();
+                    structure.add(model);
                 }
                 progressLine();
             }
@@ -83,24 +77,46 @@ public class PDBParser {
             System.err.println("Error: Target File Cannot Be Read");
         }
         createBonds();
+    }
 
+    private static void createBondsHelper(Residue residue1, Residue residue2) {
+        for (var atom1 : residue1.values()) {
+            for (var atom2 : residue2.values()) {
+                double distanceThreshold = (atom1.getRadius() + atom2.getRadius()) * BOND_TOLERANCE;
+                if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < distanceThreshold && !atom1.equals(atom2)) {
+                    atom1.addBond(atom2);
+                }
+            }
+        }
+    }
+
+    private static double calcDistance(Atom atom1, Atom atom2) {
+        var coordsAtom1 = atom1.getPosition();
+        var coordsAtom2 = atom2.getPosition();
+        return Math.sqrt(Math.pow(coordsAtom1.x() - coordsAtom2.x(), 2)
+                + Math.pow(coordsAtom1.y() - coordsAtom2.y(), 2)
+                + Math.pow(coordsAtom1.z() - coordsAtom2.z(), 2)
+        );
+    }
+
+    public HashMap<String, Map<String, Integer>> getAaCompositionPerChain() {
+        return aaCompositionPerChain;
     }
 
     private Model parseModel(Structure structure, int modelID) {
 
         var model = new Model(structure, modelID);
 
-        while ( currLine != null && currLine.trim().length() > 0 ) {
+        while (currLine != null && currLine.trim().length() > 0) {
 
-            if (currLine.startsWith("ENDMDL") ) { // || currLine.!startsWith("ATOM")
+            if (currLine.startsWith("ENDMDL")) {
 //                progressLine();
                 return model;
             }
-
             if (currLine.startsWith("ATOM")) {
-//                var chain = ;
-                model.add(parseChain(model));
-
+                var chain = parseChain(model);
+                chain.setExtrema();
+                model.add(chain);
             }
             progressLine();
         }
@@ -111,19 +127,18 @@ public class PDBParser {
         var chain = new Chain(currLine.charAt(21), model);
         aaCompositionPerChain.putIfAbsent(String.valueOf(chain.getChainID()), new HashMap<>());
 
-        while ( currLine != null && currLine.trim().length() > 0 ) {
+        while (currLine != null && currLine.trim().length() > 0) {
 
             if (currLine.startsWith("ATOM")) {
-
-                chain.add(parseResidue(chain));
+                var residue = parseResidue(chain);
+                residue.setCoordExtrema();
+                chain.add(residue);
             } else {
                 progressLine();
             }
-
             if (currLine.startsWith("TER")) {
                 return chain;
             }
-
         }
         return chain;
     }
@@ -138,18 +153,18 @@ public class PDBParser {
         var residue = new Residue(resID, resType, chain);
 
         // parse ATOM lines to Atom objects
-        while ( currLine != null && currLine.trim().length() > 0 ) {
+        while (currLine != null && currLine.trim().length() > 0) {
 
             if (currLine.startsWith("TER") || !(resID == parseInt(currLine.substring(22, 26).strip()))) {
-                if (chain.getModel().getId() == 1){
+                if (chain.getModel().getId() == 1) {
                     aaCompositionPerChain.get(String.valueOf(chain.getChainID()))
                             .computeIfPresent(residue.getThreeLetter(), (k, v) -> v + 1);
                     aaCompositionPerChain.get(String.valueOf(chain.getChainID()))
                             .putIfAbsent(residue.getThreeLetter(), 1);
-//                    aaCompositionPerChain.get("Total")
-//                            .computeIfPresent(residue.getThreeLetter(), (k, v) -> v + 1);
-//                    aaCompositionPerChain.get("Total")
-//                            .putIfAbsent(residue.getThreeLetter(), 1);
+                    aaCompositionPerChain.get("Total")
+                            .computeIfPresent(residue.getThreeLetter(), (k, v) -> v + 1);
+                    aaCompositionPerChain.get("Total")
+                            .putIfAbsent(residue.getThreeLetter(), 1);
                 }
                 attachSecStructure(residue);
                 return residue;
@@ -171,37 +186,36 @@ public class PDBParser {
 
     private Atom parseAtom(Residue residue) {
 
-            String complexType = currLine.substring(12, 16).strip();
-            char simpleType = currLine.charAt(77);
-            int id = parseInt(currLine.substring(6, 11).strip());
-            char chainID = currLine.charAt(21);
+        String complexType = currLine.substring(12, 16).strip();
+        char simpleType = currLine.charAt(77);
+        int id = parseInt(currLine.substring(6, 11).strip());
 
-            var position = new Atom.Position(
-                    parseDouble(currLine.substring(30, 38)),
-                    parseDouble(currLine.substring(38, 46)),
-                    parseDouble(currLine.substring(46, 55))
-            );
-        return new Atom(id,complexType, simpleType,chainID, residue, position);
+        var position = new Atom.Position(
+                parseDouble(currLine.substring(30, 38)),
+                parseDouble(currLine.substring(38, 46)),
+                parseDouble(currLine.substring(46, 55))
+        );
+        return new Atom(id, complexType, simpleType, residue, position);
     }
 
-    private void attachSecStructure(Residue residue){
-        for (var helix : helices){
-            if (residue.getChain().getChainID() == helix.chain() && residue.getId() >= helix.start() && residue.getId() <= helix.end()){
+    private void attachSecStructure(Residue residue) {
+        for (var helix : helices) {
+            if (residue.getChain().getChainID() == helix.chain() && residue.getId() >= helix.start() && residue.getId() <= helix.end()) {
                 residue.setStructure(StructureType.HELIX);
                 residue.values().forEach(atom -> atom.setStructureType(StructureType.HELIX));
                 break;
             }
         }
-        if (residue.getStructureType() != StructureType.HELIX){
-            for (var sheet : sheets){
-                if (residue.getChain().getChainID() == sheet.chain() && residue.getId() >= sheet.start() && residue.getId() <= sheet.end()){
+        if (residue.getStructureType() != StructureType.HELIX) {
+            for (var sheet : sheets) {
+                if (residue.getChain().getChainID() == sheet.chain() && residue.getId() >= sheet.start() && residue.getId() <= sheet.end()) {
                     residue.setStructure(StructureType.SHEET);
                     residue.values().forEach(atom -> atom.setStructureType(StructureType.SHEET));
                     break;
                 }
             }
         }
-        if (residue.getStructureType() == StructureType.COIL && residue.getOneLetter() == null){
+        if (residue.getStructureType() == StructureType.COIL && residue.getOneLetter() == null) {
             residue.setStructure(StructureType.NUCLEOTIDE);
             residue.values().forEach(atom -> atom.setStructureType(StructureType.NUCLEOTIDE));
         }
@@ -220,33 +234,13 @@ public class PDBParser {
                     if (prevResidue != null && !residue.equals(chain.get(0))) {
                         createBondsHelper(residue, prevResidue);
                     }
-                     prevResidue = residue;
+                    prevResidue = residue;
                 }
             }
         }
     }
 
-    private static void createBondsHelper(Residue residue1, Residue residue2){
-        for (var atom1 : residue1.values()) {
-            for (var atom2 : residue2.values()) {
-                double distanceThreshold = (atom1.getRadius() + atom2.getRadius()) * BOND_TOLERANCE;
-                if (!atom1.equals(atom2) && calcDistance(atom1, atom2) < distanceThreshold && !atom1.equals(atom2)){
-                    atom1.addBond(atom2);
-                }
-            }
-        }
-    }
-
-    private static double calcDistance(Atom atom1, Atom atom2){
-        var coordsAtom1 = atom1.getPosition();
-        var coordsAtom2 = atom2.getPosition();
-        return Math.sqrt(Math.pow(coordsAtom1.x()  - coordsAtom2.x(), 2)
-                        + Math.pow(coordsAtom1.y()  - coordsAtom2.y(), 2)
-                        + Math.pow(coordsAtom1.z()  - coordsAtom2.z(), 2)
-        ) * 100;
-    }
-
-    private void progressLine(){
+    private void progressLine() {
         /*
         central Place to manage Exception caused by reader
          */
@@ -261,33 +255,10 @@ public class PDBParser {
         return structure;
     }
 
-    record Helix (int id, int start, int end, char chain){}
+    record Helix(int id, int start, int end, char chain) {
+    }
 
-    record Sheet (int counter, String id, int start, int end, char chain){}
+    record Sheet(int counter, String id, int start, int end, char chain) {
+    }
 
-//    private Map<String, Integer> createAminoAcidCounting() {
-//        //wrapping inside the hashMap constructor makes the map mutable -> allows usage of computeIfPresent()
-//        return new HashMap<>(Map.ofEntries(
-//                new AbstractMap.SimpleEntry<>("CYS", 0),
-//                new AbstractMap.SimpleEntry<>("ASP", 0),
-//                new AbstractMap.SimpleEntry<>("SER", 0),
-//                new AbstractMap.SimpleEntry<>("GLN", 0),
-//                new AbstractMap.SimpleEntry<>("LYS", 0),
-//                new AbstractMap.SimpleEntry<>("ILE", 0),
-//                new AbstractMap.SimpleEntry<>("PRO", 0),
-//                new AbstractMap.SimpleEntry<>("THR", 0),
-//                new AbstractMap.SimpleEntry<>("PHE", 0),
-//                new AbstractMap.SimpleEntry<>("ASN", 0),
-//                new AbstractMap.SimpleEntry<>("GLY", 0),
-//                new AbstractMap.SimpleEntry<>("HIS", 0),
-//                new AbstractMap.SimpleEntry<>("LEU", 0),
-//                new AbstractMap.SimpleEntry<>("ARG", 0),
-//                new AbstractMap.SimpleEntry<>("TRP", 0),
-//                new AbstractMap.SimpleEntry<>("ALA", 0),
-//                new AbstractMap.SimpleEntry<>("VAL", 0),
-//                new AbstractMap.SimpleEntry<>("GLU", 0),
-//                new AbstractMap.SimpleEntry<>("TYR", 0),
-//                new AbstractMap.SimpleEntry<>("MET", 0)
-//        ));
-//    }
 }

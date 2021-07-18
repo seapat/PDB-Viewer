@@ -1,33 +1,33 @@
 package CoV2StructureExplorer.model;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Residue extends HashMap<String, Atom> {
 
-    private static final Map<String, Character> lookUpAminoAcids = Map.ofEntries(
-            new AbstractMap.SimpleEntry<>("CYS", 'C'),
-            new AbstractMap.SimpleEntry<>("ASP", 'D'),
-            new AbstractMap.SimpleEntry<>("SER", 'S'),
-            new AbstractMap.SimpleEntry<>("GLN", 'Q'),
-            new AbstractMap.SimpleEntry<>("LYS", 'K'),
-            new AbstractMap.SimpleEntry<>("ILE", 'I'),
-            new AbstractMap.SimpleEntry<>("PRO", 'P'),
-            new AbstractMap.SimpleEntry<>("THR", 'T'),
-            new AbstractMap.SimpleEntry<>("PHE", 'F'),
-            new AbstractMap.SimpleEntry<>("ASN", 'N'),
-            new AbstractMap.SimpleEntry<>("GLY", 'G'),
-            new AbstractMap.SimpleEntry<>("HIS", 'H'),
-            new AbstractMap.SimpleEntry<>("LEU", 'L'),
-            new AbstractMap.SimpleEntry<>("ARG", 'R'),
-            new AbstractMap.SimpleEntry<>("TRP", 'W'),
-            new AbstractMap.SimpleEntry<>("ALA", 'A'),
-            new AbstractMap.SimpleEntry<>("VAL",'V'),
-            new AbstractMap.SimpleEntry<>("GLU", 'E'),
-            new AbstractMap.SimpleEntry<>("TYR", 'Y'),
-            new AbstractMap.SimpleEntry<>("MET", 'M'));
+    private static final Map<String, Character> lookUpAminoAcids = new HashMap<>() {{
+            put("CYS", 'C');
+            put("ASP", 'D');
+            put("SER", 'S');
+            put("GLN", 'Q');
+            put("LYS", 'K');
+            put("ILE", 'I');
+            put("PRO", 'P');
+            put("THR", 'T');
+            put("PHE", 'F');
+            put("ASN", 'N');
+            put("GLY", 'G');
+            put("HIS", 'H');
+            put("LEU", 'L');
+            put("ARG", 'R');
+            put("TRP", 'W');
+            put("ALA", 'A');
+            put("VAL", 'V');
+            put("GLU", 'E');
+            put("TYR", 'Y');
+            put("MET", 'M');
+    }};
 
     private final int id;
     private final String threeLetter;
@@ -35,10 +35,11 @@ public class Residue extends HashMap<String, Atom> {
     private final Chain chain;
     private StructureType secStructure;
 
-
-    public Chain getChain() {
-        return chain;
+    public CoordExtrema getCoordExtrema() {
+        return coordExtrema;
     }
+
+    private CoordExtrema coordExtrema;
 
     public Residue(int id, String threeLetter, Chain chain) {
         this.id = id;
@@ -46,6 +47,27 @@ public class Residue extends HashMap<String, Atom> {
         this.chain = chain;
         this.secStructure = StructureType.COIL;
         this.oneLetter = lookUpAminoAcids.getOrDefault(this.threeLetter, null); // this.getThreeLetter().charAt(0)
+    }
+
+    public void setCoordExtrema() {
+        this.coordExtrema = new CoordExtrema(
+                this.values().stream().map(atom -> atom.getPosition().x())
+                        .max(Comparator.comparing(Double::valueOf)).orElse(Double.MIN_VALUE),
+                this.values().stream().map(atom -> atom.getPosition().x())
+                        .min(Comparator.comparing(Double::valueOf)).orElse(Double.MAX_VALUE),
+                this.values().stream().map(atom -> atom.getPosition().y())
+                        .max(Comparator.comparing(Double::valueOf)).orElse(Double.MIN_VALUE),
+                this.values().stream().map(atom -> atom.getPosition().y())
+                        .min(Comparator.comparing(Double::valueOf)).orElse(Double.MAX_VALUE),
+                this.values().stream().map(atom -> atom.getPosition().z())
+                        .max(Comparator.comparing(Double::valueOf)).orElse(Double.MIN_VALUE),
+                this.values().stream().map(atom -> atom.getPosition().z())
+                        .min(Comparator.comparing(Double::valueOf)).orElse(Double.MAX_VALUE)
+        );
+    }
+
+    public Chain getChain() {
+        return chain;
     }
 
     public String getThreeLetter() {
@@ -63,7 +85,6 @@ public class Residue extends HashMap<String, Atom> {
     public void setStructure(StructureType secStructure) {
         this.secStructure = secStructure;
     }
-
 
     public Character getOneLetter() {
         return oneLetter;
