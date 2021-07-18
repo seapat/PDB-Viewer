@@ -64,12 +64,10 @@
             </accelerator>
          </MenuItem>
         </Menu>
-      <Menu mnemonicParsing="false" text="Window">
-        <items>
-            <MenuItem fx:id="copyImageMenuItem" mnemonicParsing="false" text="Save to Clipboard" />
-            <MenuItem fx:id="darkThemeMenu" mnemonicParsing="false" text="Dark Theme" />
-        </items>
-      </Menu>
+        <Menu mnemonicParsing="false" text="Window">
+            <MenuItem fx:id="copyImageMenuItem" mnemonicParsing="false" text="Image to Clipboard"/>
+            <MenuItem fx:id="darkThemeMenu" mnemonicParsing="false" text="Dark Theme"/>
+        </Menu>
         <Menu mnemonicParsing="false" text="Help">
             <MenuItem fx:id="aboutMenu" mnemonicParsing="false" text="About" />
         </Menu>
@@ -92,65 +90,55 @@
             <TextArea fx:id="abstractContent" editable="false" wrapText="true" />
         </Tab>
         <Tab closable="false" text="Chart">
-         <content>
             <VBox fx:id="chartTab">
-               <children>
-                  <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="NEVER">
-                     <items>
-                        <ToggleButton fx:id="chartTotalButton" mnemonicParsing="false" text="Total" />
-                        <Separator orientation="VERTICAL" />
-                        <Button fx:id="flipChartButton" mnemonicParsing="false" text="Flip Data" />
-                     </items>
-                  </ToolBar>
-               </children>
+                <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="NEVER">
+                    <ToggleButton fx:id="chartTotalButton" mnemonicParsing="false" text="Total"/>
+                    <Separator orientation="VERTICAL"/>
+                    <Button fx:id="flipChartButton" mnemonicParsing="false" text="Flip Data"/>
+                </ToolBar>
             </VBox>
-         </content></Tab>
+        </Tab>
         <Tab closable="false" text="Visualisation">
-            <content>
-                <VBox>
-                    <children>
-                        <ToolBar>
-                            <items>
-                                <CheckBox fx:id="atomsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Atoms" />
-                                <Slider fx:id="radiusScale" max="1.5" min="0.5" prefWidth="100.0" value="1.0" />
-                                <CheckBox fx:id="bondsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Bonds" />
-                                <Slider fx:id="diameterScale" blockIncrement="0.25" max="0.15" min="0.05" prefWidth="100.0" value="0.1" />
-                                <CheckBox fx:id="ribbonChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" text="Ribbon" />
-                                <Pane HBox.hgrow="ALWAYS" />
-                                <ToggleButton fx:id="rotateProteinButton" mnemonicParsing="false" text="Rotate" />
-                                <Button fx:id="scaleChainsButton" mnemonicParsing="false" text="Cycle" />
-                                <ToggleButton fx:id="explodeButton" mnemonicParsing="false" prefWidth="65.0" text="Explode" />
-                                <Label fx:id="focusLabel" nodeOrientation="LEFT_TO_RIGHT" text="Chain" />
-                                <ChoiceBox fx:id="focusChoice" nodeOrientation="LEFT_TO_RIGHT" />
-                                <Label nodeOrientation="LEFT_TO_RIGHT" text="Color" />
-                                <ChoiceBox fx:id="colorChoice" nodeOrientation="LEFT_TO_RIGHT" />
-                                <Label fx:id="modelLabel" nodeOrientation="LEFT_TO_RIGHT" text="Model" />
-                                <ChoiceBox fx:id="modelChoice" nodeOrientation="LEFT_TO_RIGHT" />
-                            </items>
-                        </ToolBar>
-                        <StackPane VBox.vgrow="ALWAYS">
-                            <children>
-                                <Pane fx:id="figurePane" style="-fx-background-color: TRANSPARENT;" />
-                                <Pane fx:id="selectionPane" mouseTransparent="true" />
-                                <AnchorPane depthTest="DISABLE" mouseTransparent="true" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: TRANSPARENT;">
-                                    <children>
-                                        <Pane fx:id="legendPane" layoutX="10.0" layoutY="10.0" mouseTransparent="true" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
-                                            <!--                                            <style>-fx-background-color: WHITE; -fx-border-color: BLACK;</style>-->
-                                        </Pane>
-                                    </children>
-                                </AnchorPane>
+            <VBox>
+                <ToolBar>
+                    <CheckBox fx:id="atomsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT"
+                              text="Atoms"/>
+                    <Slider fx:id="radiusScale" max="1.5" min="0.5" prefWidth="100.0" value="1.0"/>
+                    <CheckBox fx:id="bondsChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT"
+                              text="Bonds"/>
+                    <Slider fx:id="diameterScale" blockIncrement="0.25" max="0.15" min="0.05" prefWidth="100.0"
+                            value="0.1"/>
+                    <CheckBox fx:id="ribbonChecked" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT"
+                              text="Ribbon"/>
+                    <Pane HBox.hgrow="ALWAYS"/>
+                    <ToggleButton fx:id="rotateProteinButton" mnemonicParsing="false" text="Rotate"/>
+                    <Button fx:id="scaleChainsButton" mnemonicParsing="false" text="Cycle"/>
+                    <ToggleButton fx:id="explodeButton" mnemonicParsing="false" prefWidth="65.0"
+                                  text="Explode"/>
+                    <Label fx:id="focusLabel" nodeOrientation="LEFT_TO_RIGHT" text="Chain"/>
+                    <ChoiceBox fx:id="focusChoice" nodeOrientation="LEFT_TO_RIGHT"/>
+                    <Label nodeOrientation="LEFT_TO_RIGHT" text="Color"/>
+                    <ChoiceBox fx:id="colorChoice" nodeOrientation="LEFT_TO_RIGHT"/>
+                    <Label fx:id="modelLabel" nodeOrientation="LEFT_TO_RIGHT" text="Model"/>
+                    <ChoiceBox fx:id="modelChoice" nodeOrientation="LEFT_TO_RIGHT"/>
+                </ToolBar>
+                <StackPane VBox.vgrow="ALWAYS">
+                    <Pane fx:id="figurePane" style="-fx-background-color: TRANSPARENT;"/>
+                    <Pane fx:id="selectionPane" mouseTransparent="true"/>
+                    <AnchorPane depthTest="DISABLE" mouseTransparent="true" prefHeight="200.0" prefWidth="200.0"
+                                style="-fx-background-color: TRANSPARENT;">
+                        <Pane fx:id="legendPane" layoutX="10.0" layoutY="10.0" mouseTransparent="true"
+                              AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                            <!--                                            <style>-fx-background-color: WHITE; -fx-border-color: BLACK;</style>-->
+                        </Pane>
+                    </AnchorPane>
 
-                            </children>
-                        </StackPane>
-                        <ToolBar prefHeight="40.0" prefWidth="200.0">
-                            <items>
-                                <Label text="Selected Residues: " />
-                                <Label fx:id="infoLabel" />
-                            </items>
-                        </ToolBar>
-                    </children>
-                </VBox>
-            </content>
+                </StackPane>
+                <ToolBar prefHeight="40.0" prefWidth="200.0">
+                    <Label text="Selected Residues: "/>
+                    <Label fx:id="infoLabel"/>
+                </ToolBar>
+            </VBox>
         </Tab>
     </TabPane>
 </VBox>
