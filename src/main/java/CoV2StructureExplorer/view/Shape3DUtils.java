@@ -71,6 +71,7 @@ public class Shape3DUtils {
 
     /**
      * creates part of a ribbon
+     *
      * @param ca1 C-alpha of amino acid i
      * @param cb1 C-beta of amino acid i
      * @param op1 opposite
@@ -89,10 +90,6 @@ public class Shape3DUtils {
                 (float) ca2.getX(), (float) ca2.getY(), (float) ca2.getZ(),
                 (float) cb2.getX(), (float) cb2.getY(), (float) cb2.getZ(),
         };
-
-        for (int i = 0; i < points.length; i++) {
-            points[i] = points[i] * 100;
-        }
 
         var faces = new int[]{
                 0, 0, 1, 1, 4, 4,
@@ -124,7 +121,7 @@ public class Shape3DUtils {
         mesh.getFaceSmoothingGroups().addAll(smoothing);
 
         var meshView = new MeshView(mesh);
-        meshView.setMaterial(new PhongMaterial(Color.PLUM));
+        meshView.setMaterial(new PhongMaterial(Color.PURPLE));
 
         return meshView;
     }
