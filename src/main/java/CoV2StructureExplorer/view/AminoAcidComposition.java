@@ -1,12 +1,13 @@
 package CoV2StructureExplorer.view;
 
-import CoV2StructureExplorer.model.PDBFile;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -14,30 +15,29 @@ import java.util.Map;
 
 public class AminoAcidComposition {
 
-    // HORIZONTAL STACKED AR CHART ... MAYBE BUBBLE CHART?
+    public static Node setupStackedBarChart(HashMap<String, Map<String, Integer>> data, WindowController controller, boolean flipBool) {
 
-    // get data structure from ChartPresenter
-    // loop over data structure: each chain one bar, each chains value: one series
-    // NOTE: sort series by size
+        var dataCopy = new HashMap<>(data);
 
-    //TODO draw single barchart instead of stacked if only one chain
+        if (!controller.getChartTotalButton().isSelected()){
+            dataCopy.remove("Total");
+        }
 
-    public static Node setup(PDBFile model, WindowController controller){
-
-        var data = flip( model.getAaComposition());
+        if (flipBool) {
+            dataCopy = flip(dataCopy);
+        }
 
         var yAxis = new CategoryAxis();
         yAxis.setLabel("Chain");
         var xAxis = new NumberAxis();
         xAxis.setLabel("Count");
-        xAxis.setTickLabelRotation(90);
 
         var chart = new StackedBarChart<>(yAxis, xAxis);
 
         chart.setLegendSide(Side.BOTTOM);
         chart.setLegendVisible(true);
 
-        for (var chain : data.entrySet()) {
+        for (var chain : dataCopy.entrySet()) {
             var series = new XYChart.Series<String, Number>();
             series.setName(chain.getKey());
             for (var residue : chain.getValue().entrySet()) {
@@ -47,16 +47,16 @@ public class AminoAcidComposition {
             chart.getData().add(series);
         }
 
-        if (chart.getData().size() == 2) chart.getData().remove(1);
+        VBox.setVgrow(chart, Priority.ALWAYS);
 
         return chart;
     }
 
-    public static Map<String, HashMap<String, Integer>> flip(HashMap<String, Map<String, Integer>> map){
-        Map<String, HashMap<String, Integer>> result = new HashMap<>();
-        for (var key : map.keySet()){
-            for (var key2 : map.get(key).keySet()){
-                if (!result.containsKey(key2)){
+    public static HashMap<String, Map<String, Integer>> flip(HashMap<String, Map<String, Integer>> map) {
+        HashMap<String, Map<String, Integer>> result = new HashMap<>();
+        for (var key : map.keySet()) {
+            for (var key2 : map.get(key).keySet()) {
+                if (!result.containsKey(key2)) {
                     result.put(key2, new HashMap<>());
                 }
 
@@ -65,5 +65,6 @@ public class AminoAcidComposition {
         }
         return result;
     }
+
 
 }
