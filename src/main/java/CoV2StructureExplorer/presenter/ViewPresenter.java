@@ -74,9 +74,10 @@ public class ViewPresenter {
 
         setupFocusChoice(controller);
 
-        controller.getColorChoice().valueProperty().addListener(e -> {
+        controller.getColorChoice().valueProperty().addListener((v , o , n) -> {
             if ((controller.getColorChoice().getValue() == null))
                 controller.getFocusChoice().setValue("All");
+            if (!n.equals(o))
             balls.changeColor(controller);
         });
 

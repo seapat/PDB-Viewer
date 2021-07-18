@@ -85,7 +85,7 @@ public class Balls extends ArrayList<Sphere> {
         put("U", Color.ORANGE);
     }};
     private final HashMap<Chain, HashMap<Residue, HashMap<Atom, Sphere>>> modelToView = new HashMap<>();
-    private final HashMap<Chain, Color> chainColorsLookUp = new HashMap<>();
+    private final HashMap<Character, Color> chainColorsLookUp = new HashMap<>();
 
     public Balls(Structure pdb, SetSelectionModel<Residue> selectedResidues, HashMap<Chain, Group> chainGroups,
                  WindowController controller, StringProperty selectedResiduesProp) {
@@ -97,7 +97,7 @@ public class Balls extends ArrayList<Sphere> {
 
         for (var chain : pdb.get(modelChoice - 1)) {
 
-            chainColorsLookUp.put(chain, iterateChainColors.next());
+            chainColorsLookUp.put(chain.getChainID(), iterateChainColors.next());
             modelToView.put(chain, new HashMap<>());
 
             chainGroups.putIfAbsent(chain, new Group());
@@ -159,10 +159,8 @@ public class Balls extends ArrayList<Sphere> {
         for (var chain : modelToView.entrySet()) {
             for (var residues : chain.getValue().entrySet()) {
                 for (var atomSphere : residues.getValue().entrySet()) {
-                    var atom = atomSphere.getKey();
-                    var sphere = atomSphere.getValue();
-                    color = getColor(colorChoice, atom);
-                    sphere.setMaterial(new PhongMaterial(color));
+                    color = getColor(colorChoice, atomSphere.getKey());
+                    atomSphere.getValue().setMaterial(new PhongMaterial(color));
                 }
             }
         }
@@ -180,7 +178,7 @@ public class Balls extends ArrayList<Sphere> {
         Color color;
         switch (colorChoice) {
             case "Structure" -> color = secStrucColors.getOrDefault(atom.getStructureType().toString(), Color.PLUM);
-            case "Chains" -> color = chainColorsLookUp.get(atom.getChain());
+            case "Chains" -> color = chainColorsLookUp.get(atom.getChain().getChainID());
             case "Residue" -> color = residueColorLookUp.get(atom.getResidue().getThreeLetter());
             default -> color = atomColors.getOrDefault(atom.getSimpleType(), Color.PLUM);
         }
