@@ -18,7 +18,9 @@ public class SetSelectionModel<T> implements SelectionModel<T> {
 
     @Override
     public boolean setSelected(T t, boolean select) {
-        if (select) { return selectedObjects.add(t); }
+        if (select) {
+            return selectedObjects.add(t);
+        }
         return selectedObjects.remove(t);
     }
 
