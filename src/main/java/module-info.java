@@ -4,12 +4,11 @@ module CoV2StructureExplorer {
     requires java.json;
 
     // fxml file is located in resources now, needs access
-    opens CoV2StructureExplorer.view to javafx.fxml;
+    opens PDBViewer.view to javafx.fxml;
 
-    exports CoV2StructureExplorer.model;
-    exports CoV2StructureExplorer.view;
-    exports CoV2StructureExplorer.selection;
-    exports CoV2StructureExplorer.presenter;
-    exports CoV2StructureExplorer;
-//    opens CoV2StructureExplorer to javafx.fxml;
+    exports PDBViewer.model;
+    exports PDBViewer.view;
+    exports PDBViewer.selection;
+    exports PDBViewer.presenter;
+    exports PDBViewer;
 }
