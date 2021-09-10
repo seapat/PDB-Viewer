@@ -167,7 +167,8 @@ public class ViewPresenter {
                         .collect(Collectors.toList())
         ));
         controller.getFocusChoice().valueProperty().addListener(e -> {
-            if (null != controller.getFocusChoice().valueProperty().getValue() && !controller.getFocusChoice().valueProperty().getValue().equals("All")) {
+            if (null != controller.getFocusChoice().valueProperty().getValue()
+                    && !controller.getFocusChoice().valueProperty().getValue().equals("All")) {
                 selectionModel.clearSelection();
             }
         });
