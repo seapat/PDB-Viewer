@@ -18,7 +18,7 @@ public class PDBParser {
     From The Biopython Structural Bioinformatics FAQ:
         The Structure object follows the so-called SMCRA (Structure/Model/Chain/Residue/Atom) architecture:
             - A structure consists of models
-            - A CoV2StructureExplore.PDBViewer.model consists of chains
+            - A structure consists of chains
             - A chain consists of residues
             - A residue consists of atoms
 

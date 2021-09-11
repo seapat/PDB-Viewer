@@ -1,4 +1,4 @@
-module CoV2StructureExplorer {
+module PDBViewer {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.json;
