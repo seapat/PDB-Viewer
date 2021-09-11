@@ -18,6 +18,13 @@
         <javafx.maven.plugin.version>0.0.6</javafx.maven.plugin.version>
     </properties>
 
+    <scm>
+        <connection>scm:git:${project.scm.url}</connection>
+        <developerConnection>scm:git:${project.scm.url}</developerConnection>
+        <url>https://github.com/seapat/PDB-Viewer.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
     <!-- Add the default repo manually for compatibility -->
     <repositories>
         <repository>
@@ -51,6 +58,13 @@
 
     <build>
         <plugins>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>XXX</version>
+                <configuration>
+                    <scmCommentPrefix>[ci skip]</scmCommentPrefix>  
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
