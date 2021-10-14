@@ -1,11 +1,13 @@
 # PDB-Viewer
 
-![image1](images/image_1.png)
+![image1](media/image_1.png)
 
-![image2](images/image_2.png)
+![image2](media/image_2.png)
 
-![image3](images/image_3.png)
+![image3](media/image_3.png)
 
-![image4](images/image_4.png)
+![image4](media/image_4.png)
 
-![image5](images/image_5.png)
+![image5](media/image_5.png)
+
+![Pdbviewer](media/Pdbviewer.mp4)

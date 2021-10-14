@@ -1,0 +1,19 @@
+<component name="ArtifactManager">
+  <artifact name="PDBViewer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/PDBViewer_jar</output-path>
+    <root id="root">
+      <element id="archive" name="PDBViewer.jar">
+        <element id="module-output" name="PDBViewer" />
+      </element>
+      <element id="library" level="project" name="Maven: org.openjfx:javafx-base:win:16" />
+      <element id="library" level="project" name="Maven: org.openjfx:javafx-controls:win:16" />
+      <element id="library" level="project" name="Maven: org.openjfx:javafx-fxml:16" />
+      <element id="library" level="project" name="Maven: org.openjfx:javafx-controls:16" />
+      <element id="library" level="project" name="Maven: org.openjfx:javafx-fxml:win:16" />
+      <element id="library" level="project" name="Maven: org.openjfx:javafx-base:16" />
+      <element id="library" level="project" name="Maven: org.glassfish:javax.json:1.1.4" />
+      <element id="library" level="project" name="Maven: org.openjfx:javafx-graphics:16" />
+      <element id="library" level="project" name="Maven: org.openjfx:javafx-graphics:win:16" />
+    </root>
+  </artifact>
+</component>

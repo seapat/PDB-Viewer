@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Main-Class: PDBViewer.Main
+Class-Path: javafx-base-16-win.jar javafx-controls-16-win.jar javafx-gra
+ phics-16-win.jar javafx-fxml-16.jar javafx-controls-16.jar javafx-fxml-
+ 16-win.jar javafx-base-16.jar javax.json-1.1.4.jar javafx-graphics-16.j
+ ar
+
